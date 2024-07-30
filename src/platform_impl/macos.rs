@@ -5,7 +5,8 @@ use std::{ffi::c_void, ptr::null_mut};
 use accessibility_sys::{
     AXIsProcessTrusted, AXObserverAddNotification, AXObserverCreate, AXObserverGetRunLoopSource,
     AXObserverRef, AXUIElementCreateApplication, AXUIElementRef, __AXObserver,
-    kAXResizedNotification,
+    kAXApplicationActivatedNotification, kAXMovedNotification, kAXPositionAttribute,
+    kAXResizedNotification, AXUIElementCopyAttributeValue, AXValueGetType, AXValueRef,
 };
 use core_foundation::{
     base::{CFRelease, TCFType, ToVoid},
@@ -19,6 +20,8 @@ use core_foundation::{
 pub use accessibility_sys;
 pub use core_foundation;
 
+use crate::Event;
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Permissions denied. I want the Accessibility Permission.")]
@@ -31,20 +34,46 @@ pub struct WindowObserver {
     pid: i32,
     elem: AXUIElementRef,
     observer: *mut __AXObserver,
-    pub callback: Box<dyn FnMut()>,
+    pub callback: Box<dyn FnMut(Event)>,
 }
 
 extern "C" fn observer_callback(
     _observer: AXObserverRef,
-    _element: AXUIElementRef,
+    element: AXUIElementRef,
     notification: CFStringRef,
     refcon: *mut c_void,
 ) {
-    let mut window_observer = unsafe {
-        println!("{}", CFString::wrap_under_get_rule(notification));
-        Box::from_raw(refcon as *mut WindowObserver)
+    let value: AXValueRef = null_mut();
+    unsafe {
+        AXUIElementCopyAttributeValue(
+            element,
+            CFString::new(kAXPositionAttribute).to_void() as _,
+            value as _,
+        );
+        println!("{}", value.is_null());
+        let type_ = AXValueGetType(value);
+        //AXValueType
+        println!("{}", type_);
+    }
+
+    // Convert the notification name to enum Event.
+    let (notification, mut window_observer) = unsafe {
+        (
+            CFString::wrap_under_get_rule(notification).to_string(),
+            Box::from_raw(refcon as *mut WindowObserver),
+        )
     };
-    (window_observer.callback)();
+    let event = match notification.as_ref() {
+        "AXMoved" => Event::Moved,
+        "AXResized" => Event::Resized,
+        "AXApplicationActivated" => Event::Activated,
+        _ => {
+            return;
+        }
+    };
+
+    (window_observer.callback)(event);
+
     // Box will call the desctructor of WindowObserver
     // but the Rust Compiler compile to automatically call
     // the desctructor when ownership is dropped too.
@@ -54,35 +83,49 @@ extern "C" fn observer_callback(
 }
 
 impl WindowObserver {
-    pub fn new(pid: i32, callback: Box<dyn FnMut()>) -> Result<Self, Error> {
+    pub fn new(pid: i32, callback: Box<dyn FnMut(Event)>) -> Result<Self, Error> {
         unsafe {
             if !AXIsProcessTrusted() {
                 return Err(Error::PermissionsDenied);
             };
         }
 
-        Ok(Self {
-            pid,
-            elem: unsafe { AXUIElementCreateApplication(pid) },
-            observer: null_mut(),
-            callback,
-        })
-    }
-
-    pub fn start(&mut self) -> Result<(), Error> {
+        let mut observer = null_mut();
         unsafe {
-            let result = AXObserverCreate(self.pid, observer_callback, &mut self.observer);
+            let result = AXObserverCreate(pid, observer_callback, &mut observer);
 
             if result != accessibility_sys::kAXErrorSuccess {
                 return Err(Error::SomethingWentWrong(result));
             }
+        }
 
+        Ok(Self {
+            pid,
+            elem: unsafe { AXUIElementCreateApplication(pid) },
+            observer,
+            callback,
+        })
+    }
+
+    pub fn add_target_event(&self, event: Event) {
+        let notification = match event {
+            Event::Activated => kAXApplicationActivatedNotification,
+            Event::Moved => kAXMovedNotification,
+            Event::Resized => kAXResizedNotification,
+        };
+
+        unsafe {
             AXObserverAddNotification(
                 self.observer,
                 self.elem,
-                CFString::new(kAXResizedNotification).to_void() as _,
+                CFString::new(notification).to_void() as _,
                 self as *const Self as _,
             );
+        }
+    }
+
+    pub fn start(&mut self) -> Result<(), Error> {
+        unsafe {
             CFRunLoopAddSource(
                 CFRunLoopGetCurrent(),
                 AXObserverGetRunLoopSource(self.observer),

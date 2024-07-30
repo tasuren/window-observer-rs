@@ -6,15 +6,25 @@ pub enum Error {
     PlatformSpecificError(#[from] platform_impl::PlatformSpecificError),
 }
 
+pub enum Event {
+    Resized,
+    Moved,
+    Activated,
+}
+
 pub struct WindowObserver {
     sys: platform_impl::WindowObserver,
 }
 
 impl WindowObserver {
-    pub fn new(pid: i32, callback: Box<dyn FnMut()>) -> Result<Self, Error> {
+    pub fn new(pid: i32, callback: Box<dyn FnMut(Event)>) -> Result<Self, Error> {
         Ok(Self {
             sys: platform_impl::WindowObserver::new(pid, callback)?,
         })
+    }
+
+    pub fn add_target_event(&self, target: Event) {
+        self.sys.add_target_event(target);
     }
 
     pub fn start(&mut self) -> Result<(), Error> {
