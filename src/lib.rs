@@ -22,7 +22,7 @@ pub struct WindowObserver {
 }
 
 impl WindowObserver {
-    pub fn new(pid: i32, callback: Box<dyn FnMut(Event, Window)>) -> Result<Self, Error> {
+    pub fn new(pid: i32, callback: Box<dyn Fn(Event, Window)>) -> Result<Self, Error> {
         Ok(Self {
             sys: platform_impl::WindowObserver::new(pid, callback)?,
         })

@@ -1,6 +1,6 @@
 //! Bindings for macOS
 
-use std::ptr::null_mut;
+use std::{ptr::null_mut, sync::Arc};
 
 use core_foundation::{
     base::{TCFType, ToVoid},
@@ -20,11 +20,13 @@ pub mod window;
 pub use helper::OSError;
 pub use window::Window;
 
+struct ShareContainer {}
+
 pub struct WindowObserver {
     _pid: i32,
     element: accessibility_sys::AXUIElementRef,
+    callback: Box<dyn Fn(Event, crate::Window)>,
     observer: *mut accessibility_sys::__AXObserver,
-    pub callback: Box<dyn FnMut(Event, crate::Window)>,
 }
 
 extern "C" fn observer_callback(
@@ -33,10 +35,10 @@ extern "C" fn observer_callback(
     notification: CFStringRef,
     refcon: *mut std::ffi::c_void,
 ) {
-    let (notification, mut window_observer) = unsafe {
+    let (notification, refcon) = unsafe {
         (
             CFString::wrap_under_get_rule(notification).to_string(),
-            Box::from_raw(refcon as *mut WindowObserver),
+            &*(refcon as *const WindowObserver),
         )
     };
 
@@ -53,26 +55,19 @@ extern "C" fn observer_callback(
     // Pick window.
     let window = window::Window(unsafe {
         ax_ui_element_copy_attribute_value(
-            window_observer.element,
+            refcon.element,
             accessibility_sys::kAXFocusedWindowAttribute,
         )
         .unwrap()
     } as _);
 
-    (window_observer.callback)(event, crate::Window(window));
-
-    // Box will call the desctructor of WindowObserver
-    // but the Rust Compiler compile to automatically call
-    // the desctructor when ownership is dropped too.
-    // To prevent Box from making dangling pointer,
-    // let the Rust Compiler don't automatically drop it.
-    std::mem::forget(window_observer);
+    (refcon.callback)(event, crate::Window(window));
 }
 
 impl WindowObserver {
     pub fn new(
         pid: i32,
-        callback: Box<dyn FnMut(Event, crate::Window)>,
+        callback: Box<dyn Fn(Event, crate::Window)>,
     ) -> Result<Self, crate::Error> {
         unsafe {
             if !accessibility_sys::AXIsProcessTrusted() {
@@ -88,8 +83,8 @@ impl WindowObserver {
         Ok(Self {
             _pid: pid,
             element: unsafe { accessibility_sys::AXUIElementCreateApplication(pid) },
-            observer,
             callback,
+            observer,
         })
     }
 
