@@ -1,7 +1,5 @@
 //! Bindings for macOS
 
-use std::{ptr::null_mut, sync::Arc};
-
 use core_foundation::{
     base::{TCFType, ToVoid},
     runloop,
@@ -12,7 +10,7 @@ pub use accessibility_sys;
 pub use core_foundation;
 use helper::ax_ui_element_copy_attribute_value;
 
-use crate::{Error, Event};
+use crate::{Error, Event, EventCallback};
 
 pub mod helper;
 pub mod window;
@@ -20,13 +18,11 @@ pub mod window;
 pub use helper::OSError;
 pub use window::Window;
 
-struct ShareContainer {}
-
 pub struct WindowObserver {
     _pid: i32,
     element: accessibility_sys::AXUIElementRef,
-    callback: Box<dyn Fn(Event, crate::Window)>,
     observer: *mut accessibility_sys::__AXObserver,
+    pub callback: EventCallback,
 }
 
 extern "C" fn observer_callback(
@@ -65,17 +61,14 @@ extern "C" fn observer_callback(
 }
 
 impl WindowObserver {
-    pub fn new(
-        pid: i32,
-        callback: Box<dyn Fn(Event, crate::Window)>,
-    ) -> Result<Self, crate::Error> {
+    pub fn new(pid: i32, callback: EventCallback) -> Result<Self, crate::Error> {
         unsafe {
             if !accessibility_sys::AXIsProcessTrusted() {
                 return Err(crate::Error::PermissinoDenied);
             };
         }
 
-        let mut observer = null_mut();
+        let mut observer = std::ptr::null_mut();
         unsafe {
             accessibility_sys::AXObserverCreate(pid, observer_callback, &mut observer);
         }
@@ -129,8 +122,6 @@ impl WindowObserver {
                     accessibility_sys::AXObserverGetRunLoopSource(self.observer),
                     runloop::kCFRunLoopDefaultMode,
                 );
-
-                core_foundation::base::CFRelease(self.observer as _);
             }
         }
 
@@ -141,5 +132,8 @@ impl WindowObserver {
 impl Drop for WindowObserver {
     fn drop(&mut self) {
         self.stop();
+        unsafe {
+            core_foundation::base::CFRelease(self.observer as _);
+        }
     }
 }
