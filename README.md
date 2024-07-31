@@ -5,12 +5,14 @@
 First release todos:
 - [ ] macOS
   - [x] Resize detection
-  - [ ] Move detection
-  - [ ] Resize detection with information such as width, height
-  - [ ] Move detection with information such as x, y.
+  - [x] Move detection
+  - [x] Foreground detection
+  - [x] Resize detection with information such as width, height
+  - [x] Move detection with information such as x, y.
 - [ ] Windows
   - [ ] Resize detection
-  - [ ] Move detection
+  - [ ] Move detectio
+  - [ ] Foreground detectionn
   - [ ] Resize detection with information such as width, height
   - [ ] Move detection with information such as x, y.
 - [ ] Linux?
