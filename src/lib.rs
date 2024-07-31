@@ -17,12 +17,14 @@ pub enum Event {
     Activated,
 }
 
+pub type EventCallback = Box<dyn FnMut(Event, Window)>;
+
 pub struct WindowObserver {
     sys: platform_impl::WindowObserver,
 }
 
 impl WindowObserver {
-    pub fn new(pid: i32, callback: Box<dyn FnMut(Event, Window)>) -> Result<Self, Error> {
+    pub fn new(pid: i32, callback: EventCallback) -> Result<Self, Error> {
         Ok(Self {
             sys: platform_impl::WindowObserver::new(pid, callback)?,
         })

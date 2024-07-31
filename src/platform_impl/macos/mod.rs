@@ -24,7 +24,7 @@ pub struct WindowObserver {
     _pid: i32,
     element: accessibility_sys::AXUIElementRef,
     observer: *mut accessibility_sys::__AXObserver,
-    pub callback: Box<dyn FnMut(Event, crate::Window)>,
+    pub callback: crate::EventCallback,
 }
 
 extern "C" fn observer_callback(
@@ -70,10 +70,7 @@ extern "C" fn observer_callback(
 }
 
 impl WindowObserver {
-    pub fn new(
-        pid: i32,
-        callback: Box<dyn FnMut(Event, crate::Window)>,
-    ) -> Result<Self, crate::Error> {
+    pub fn new(pid: i32, callback: crate::EventCallback) -> Result<Self, crate::Error> {
         unsafe {
             if !accessibility_sys::AXIsProcessTrusted() {
                 return Err(crate::Error::PermissinoDenied);
