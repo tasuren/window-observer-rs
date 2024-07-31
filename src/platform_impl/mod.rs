@@ -2,4 +2,4 @@
 pub mod macos;
 
 #[cfg(target_os = "macos")]
-pub use macos::{Error as PlatformSpecificError, WindowObserver};
+pub use macos::{window::Window, OSError, WindowObserver};

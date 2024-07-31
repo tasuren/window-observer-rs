@@ -1,9 +1,14 @@
 pub mod platform_impl;
+pub mod window;
+
+pub use window::Window;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("Permission denied.")]
+    PermissinoDenied,
     #[error("A platform-specific error occurred: {0:?}")]
-    PlatformSpecificError(#[from] platform_impl::PlatformSpecificError),
+    PlatformSpecificError(#[source] platform_impl::OSError),
 }
 
 pub enum Event {
@@ -17,7 +22,7 @@ pub struct WindowObserver {
 }
 
 impl WindowObserver {
-    pub fn new(pid: i32, callback: Box<dyn FnMut(Event)>) -> Result<Self, Error> {
+    pub fn new(pid: i32, callback: Box<dyn FnMut(Event, Window)>) -> Result<Self, Error> {
         Ok(Self {
             sys: platform_impl::WindowObserver::new(pid, callback)?,
         })
