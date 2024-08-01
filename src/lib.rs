@@ -5,19 +5,24 @@ pub use window::Window;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("The event listener is already started.")]
+    AlreadyStarted,
+    #[error("The event listener is already stopped.")]
+    AlreadyStopped,
     #[error("Permission denied.")]
     PermissinoDenied,
     #[error("A platform-specific error occurred: {0:?}")]
     PlatformSpecificError(#[source] platform_impl::OSError),
 }
 
+#[derive(PartialEq)]
 pub enum Event {
     Resized,
     Moved,
     Activated,
 }
 
-pub type EventCallback = Box<dyn Fn(Event, Window)>;
+pub type EventCallback = Box<dyn Fn(Event, Window) + Send + Sync>;
 
 pub struct WindowObserver {
     sys: platform_impl::WindowObserver,
@@ -30,16 +35,16 @@ impl WindowObserver {
         })
     }
 
-    pub fn add_target_event(&self, target: Event) {
+    pub fn add_target_event(&mut self, target: Event) {
         self.sys.add_target_event(target);
     }
 
     pub fn start(&mut self) -> Result<(), Error> {
-        Ok(self.sys.start()?)
+        self.sys.start()
     }
 
-    pub fn stop(&self) -> Result<(), ()> {
-        Ok(self.sys.stop())
+    pub fn stop(&mut self) -> Result<(), Error> {
+        self.sys.stop()
     }
 
     pub fn join(&self) {

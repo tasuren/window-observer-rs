@@ -114,7 +114,7 @@ impl WindowObserver {
         unsafe { core_foundation::runloop::CFRunLoopRun() };
     }
 
-    pub fn stop(&self) -> () {
+    pub fn stop(&self) -> Result<(), Error> {
         if !self.observer.is_null() {
             unsafe {
                 runloop::CFRunLoopRemoveSource(

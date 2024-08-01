@@ -60,7 +60,7 @@ impl Window {
         }
     }
 
-    pub fn is_main(&self) -> Result<bool, Error> {
+    pub fn is_active(&self) -> Result<bool, Error> {
         unsafe {
             Ok(
                 ax_ui_element_copy_attribute_value(

@@ -23,7 +23,7 @@ impl Window {
         self.0.get_position()
     }
 
-    pub fn is_main(&self) -> Result<bool, Error> {
-        self.0.is_main()
+    pub fn is_active(&self) -> Result<bool, Error> {
+        self.0.is_active()
     }
 }

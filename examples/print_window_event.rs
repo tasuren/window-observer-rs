@@ -2,7 +2,7 @@ use window_observer::{self, Event};
 
 fn callback(event: Event, window: window_observer::Window) {
     match event {
-        Event::Activated => println!("Is window main: {}", window.is_main().unwrap()),
+        Event::Activated => println!("Is window main: {}", window.is_active().unwrap()),
         Event::Moved => println!("Window current position: {:?}", window.get_position()),
         Event::Resized => println!("Window current size: {:?}", window.get_size()),
     };
