@@ -13,8 +13,8 @@ pub struct Window(pub AXUIElementRef);
 impl Into<Size> for CGSize {
     fn into(self) -> Size {
         Size {
-            width: self.width,
-            height: self.height,
+            width: self.width as _,
+            height: self.height as _,
         }
     }
 }
@@ -22,8 +22,8 @@ impl Into<Size> for CGSize {
 impl Into<Position> for CGPoint {
     fn into(self) -> Position {
         Position {
-            x: self.x,
-            y: self.y,
+            x: self.x as _,
+            y: self.y as _,
         }
     }
 }
