@@ -35,8 +35,8 @@ impl WindowObserver {
         })
     }
 
-    pub fn add_target_event(&mut self, target: Event) {
-        self.sys.add_target_event(target);
+    pub fn add_target_event(&mut self, target: Event) -> Result<(), Error> {
+        self.sys.add_target_event(target)
     }
 
     pub fn start(&mut self) -> Result<(), Error> {
@@ -47,7 +47,7 @@ impl WindowObserver {
         self.sys.stop()
     }
 
-    pub fn join(&self) {
+    pub fn join(&mut self) {
         self.sys.join();
     }
 
