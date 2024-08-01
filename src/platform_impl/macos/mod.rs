@@ -8,7 +8,7 @@ use core_foundation::{
 
 pub use accessibility_sys;
 pub use core_foundation;
-use helper::ax_ui_element_copy_attribute_value;
+use helper::{ax_ui_element_copy_attribute_value, event_to_raw};
 
 use crate::{Error, Event, EventCallback};
 
@@ -81,21 +81,29 @@ impl WindowObserver {
         })
     }
 
-    pub fn add_target_event(&self, event: Event) {
-        let notification = match event {
-            Event::Activated => accessibility_sys::kAXApplicationActivatedNotification,
-            Event::Moved => accessibility_sys::kAXMovedNotification,
-            Event::Resized => accessibility_sys::kAXResizedNotification,
-        };
-
+    pub fn add_target_event(&self, event: Event) -> Result<(), Error> {
         unsafe {
             accessibility_sys::AXObserverAddNotification(
                 self.observer,
                 self.element,
-                CFString::new(notification).to_void() as _,
+                CFString::new(event_to_raw(event)).to_void() as _,
                 self as *const Self as _,
             );
-        }
+        };
+
+        Ok(())
+    }
+
+    pub fn remove_target_event(&self, event: Event) -> Result<(), Error> {
+        unsafe {
+            accessibility_sys::AXObserverRemoveNotification(
+                self.observer,
+                self.element,
+                CFString::new(event_to_raw(event)).to_void() as _,
+            );
+        };
+
+        Ok(())
     }
 
     pub fn start(&mut self) -> Result<(), Error> {
@@ -125,13 +133,13 @@ impl WindowObserver {
             }
         }
 
-        ()
+        Ok(())
     }
 }
 
 impl Drop for WindowObserver {
     fn drop(&mut self) {
-        self.stop();
+        self.stop().unwrap();
         unsafe {
             core_foundation::base::CFRelease(self.observer as _);
         }

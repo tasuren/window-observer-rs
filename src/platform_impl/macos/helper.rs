@@ -4,7 +4,7 @@ use core_foundation::{
     string::CFString,
 };
 
-use crate::Error;
+use crate::{Error, Event};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OSError {
@@ -85,6 +85,14 @@ impl From<OSError> for Error {
             OSError::APIDisabled(_) => Error::PermissinoDenied,
             another => Error::PlatformSpecificError(another),
         }
+    }
+}
+
+pub fn event_to_raw<'a>(event: Event) -> &'a str {
+    match event {
+        Event::Activated => accessibility_sys::kAXApplicationActivatedNotification,
+        Event::Moved => accessibility_sys::kAXMovedNotification,
+        Event::Resized => accessibility_sys::kAXResizedNotification,
     }
 }
 

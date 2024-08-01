@@ -39,6 +39,10 @@ impl WindowObserver {
         self.sys.add_target_event(target)
     }
 
+    pub fn remove_target_event(&mut self, target: Event) -> Result<(), Error> {
+        self.sys.remove_target_event(target)
+    }
+
     pub fn start(&mut self) -> Result<(), Error> {
         self.sys.start()
     }
