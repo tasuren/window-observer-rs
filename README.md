@@ -18,3 +18,6 @@ First release todos:
 - [ ] Linux?
   I have no plans to make this at this time due to my inexperienced knowledge about Linux.  
   But I'd be happy to receive pull requests.
+
+## Acknowledges
+- Windows event handler: [wineventhook-rs](https://github.com/OpenByteDev/wineventhook-rs/)
