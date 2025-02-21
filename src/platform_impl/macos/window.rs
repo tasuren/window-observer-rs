@@ -65,7 +65,7 @@ impl Window {
             Ok(
                 ax_ui_element_copy_attribute_value(
                     self.0 as _,
-                    accessibility_sys::kAXMainAttribute,
+                    accessibility_sys::kAXFocusedAttribute,
                 )? as u8
                     != 0,
             )
