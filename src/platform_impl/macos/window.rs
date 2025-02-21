@@ -10,20 +10,20 @@ use super::helper::{ax_ui_element_copy_attribute_value, ax_value_get_value};
 
 pub struct Window(pub AXUIElementRef);
 
-impl Into<Size> for CGSize {
-    fn into(self) -> Size {
+impl From<CGSize> for Size {
+    fn from(size: CGSize) -> Self {
         Size {
-            width: self.width as _,
-            height: self.height as _,
+            width: size.width as _,
+            height: size.height as _,
         }
     }
 }
 
-impl Into<Position> for CGPoint {
-    fn into(self) -> Position {
+impl From<CGPoint> for Position {
+    fn from(point: CGPoint) -> Self {
         Position {
-            x: self.x as _,
-            y: self.y as _,
+            x: point.x as _,
+            y: point.y as _,
         }
     }
 }
