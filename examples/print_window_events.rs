@@ -17,9 +17,9 @@ fn main() {
     )
     .unwrap();
 
-    window_observer.add_target_event(Event::Activated);
-    window_observer.add_target_event(Event::Moved);
-    window_observer.add_target_event(Event::Resized);
+    window_observer.add_target_event(Event::Activated).unwrap();
+    window_observer.add_target_event(Event::Moved).unwrap();
+    window_observer.add_target_event(Event::Resized).unwrap();
 
     window_observer.run().unwrap();
 }
