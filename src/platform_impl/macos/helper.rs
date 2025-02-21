@@ -88,7 +88,7 @@ impl From<OSError> for Error {
     }
 }
 
-pub fn event_to_raw<'a>(event: Event) -> &'a str {
+pub(crate) fn event_to_raw<'a>(event: Event) -> &'a str {
     match event {
         Event::Activated => accessibility_sys::kAXApplicationActivatedNotification,
         Event::Moved => accessibility_sys::kAXMovedNotification,
@@ -96,7 +96,7 @@ pub fn event_to_raw<'a>(event: Event) -> &'a str {
     }
 }
 
-pub unsafe fn ax_ui_element_copy_attribute_value(
+pub(crate) unsafe fn ax_ui_element_copy_attribute_value(
     element: accessibility_sys::AXUIElementRef,
     attribute: &str,
 ) -> Result<CFTypeRef, OSError> {
@@ -114,7 +114,7 @@ pub unsafe fn ax_ui_element_copy_attribute_value(
     Ok(value)
 }
 
-pub unsafe fn ax_value_get_value<T>(
+pub(crate) unsafe fn ax_value_get_value<T>(
     value: AXValueRef,
     r#type: accessibility_sys::AXValueType,
 ) -> Option<T> {
