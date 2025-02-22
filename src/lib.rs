@@ -15,14 +15,14 @@ pub enum Error {
     PlatformSpecificError(#[source] platform_impl::OSError),
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Event {
     Resized,
     Moved,
     Activated,
 }
 
-pub type EventCallback = Box<dyn Fn(Event, Window) + Send + Sync>;
+pub type EventCallback = Box<dyn Fn(Event, Window)>;
 
 pub struct WindowObserver {
     sys: platform_impl::WindowObserver,

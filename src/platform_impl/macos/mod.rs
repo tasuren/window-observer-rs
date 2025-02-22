@@ -18,11 +18,16 @@ pub mod window;
 pub use helper::OSError;
 pub use window::Window;
 
+/* A structure that groups objects whose addresses should remain unchanged. */
+struct Controller {
+    element: accessibility_sys::AXUIElementRef,
+    pub callback: EventCallback,
+}
+
 pub struct WindowObserver {
     _pid: i32,
-    element: accessibility_sys::AXUIElementRef,
     observer: *mut accessibility_sys::__AXObserver,
-    pub callback: EventCallback,
+    controller: Box<Controller>,
 }
 
 extern "C" fn observer_callback(
@@ -34,7 +39,7 @@ extern "C" fn observer_callback(
     let (notification, refcon) = unsafe {
         (
             CFString::wrap_under_get_rule(notification).to_string(),
-            &*(refcon as *const WindowObserver),
+            &*(refcon as *mut Controller),
         )
     };
 
@@ -73,10 +78,14 @@ impl WindowObserver {
             accessibility_sys::AXObserverCreate(pid, observer_callback, &mut observer);
         }
 
-        Ok(Self {
-            _pid: pid,
+        let controller = Controller {
             element: unsafe { accessibility_sys::AXUIElementCreateApplication(pid) },
             callback,
+        };
+
+        Ok(Self {
+            _pid: pid,
+            controller: Box::new(controller),
             observer,
         })
     }
@@ -85,9 +94,9 @@ impl WindowObserver {
         unsafe {
             accessibility_sys::AXObserverAddNotification(
                 self.observer,
-                self.element,
+                self.controller.element,
                 CFString::new(event_to_raw(event)).to_void() as _,
-                self as *const Self as _,
+                &*self.controller as *const _ as _,
             );
         };
 
@@ -98,7 +107,7 @@ impl WindowObserver {
         unsafe {
             accessibility_sys::AXObserverRemoveNotification(
                 self.observer,
-                self.element,
+                self.controller.element,
                 CFString::new(event_to_raw(event)).to_void() as _,
             );
         };
