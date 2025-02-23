@@ -1,1 +1,7 @@
 /target
+
+# OS
+.DS_Store
+
+# Editor
+*.code-workspace
