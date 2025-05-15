@@ -12,9 +12,9 @@ pub trait EventMacOSExt {
 impl EventMacOSExt for Event {
     fn from_ax_notification(notification: &str) -> Option<Self> {
         Some(match notification {
-            kAXApplicationActivatedNotification => Event::Activated,
-            kAXMovedNotification => Event::Moved,
-            kAXResizedNotification => Event::Resized,
+            accessibility_sys::kAXApplicationActivatedNotification => Event::Activated,
+            accessibility_sys::kAXMovedNotification => Event::Moved,
+            accessibility_sys::kAXResizedNotification => Event::Resized,
             _ => return None,
         })
     }
