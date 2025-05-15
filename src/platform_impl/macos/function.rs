@@ -23,18 +23,19 @@ pub fn ax_ui_element_copy_attribute_value(
     .into_result(value)
 }
 
+/// Utility function for `AXValueGetValue`.
+/// # Safety
+/// The `value` must be `AXValue`.
 pub unsafe fn ax_value_get_value<T>(
     value: AXValueRef,
     r#type: accessibility_sys::AXValueType,
 ) -> Option<T> {
     let mut result = std::mem::MaybeUninit::<T>::uninit();
 
-    unsafe {
-        if accessibility_sys::AXValueGetValue(value, r#type, result.as_mut_ptr() as _) {
-            Some(result.assume_init())
-        } else {
-            None
-        }
+    if accessibility_sys::AXValueGetValue(value, r#type, result.as_mut_ptr() as _) {
+        Some(result.assume_init())
+    } else {
+        None
     }
 }
 
