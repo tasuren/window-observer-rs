@@ -1,4 +1,4 @@
-use accessibility_sys::AXUIElementRef;
+use accessibility::{AXAttribute, AXUIElement};
 use objc2_foundation::{CGPoint, CGSize};
 
 use crate::{
@@ -6,9 +6,11 @@ use crate::{
     Error,
 };
 
-use super::helper::{ax_ui_element_copy_attribute_value, ax_value_get_value};
+use super::function::{ax_ui_element_copy_attribute_value, ax_value_get_value};
 
-pub struct Window(pub AXUIElementRef);
+pub struct MacOSWindow(pub AXUIElement);
+unsafe impl Send for MacOSWindow {}
+unsafe impl Sync for MacOSWindow {}
 
 impl From<CGSize> for Size {
     fn from(size: CGSize) -> Self {
@@ -28,47 +30,29 @@ impl From<CGPoint> for Position {
     }
 }
 
-impl Window {
-    unsafe fn get<T>(
-        &self,
-        attribute: &str,
-        r#type: accessibility_sys::AXValueType,
-    ) -> Result<T, Error> {
-        unsafe {
-            let size = ax_ui_element_copy_attribute_value(self.0 as _, attribute)?;
-            Ok(ax_value_get_value::<T>(size as _, r#type).unwrap())
-        }
+impl MacOSWindow {
+    fn get<T>(&self, attribute: &str, r#type: accessibility_sys::AXValueType) -> Result<T, Error> {
+        let ax_value = ax_ui_element_copy_attribute_value(&self.0, attribute)?;
+        Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
     }
 
     pub fn get_size(&self) -> Result<Size, Error> {
-        unsafe {
-            self.get::<CGSize>(
-                accessibility_sys::kAXSizeAttribute,
-                accessibility_sys::kAXValueTypeCGSize,
-            )
-            .map(|v| v.into())
-        }
+        self.get::<CGSize>(
+            accessibility_sys::kAXSizeAttribute,
+            accessibility_sys::kAXValueTypeCGSize,
+        )
+        .map(|v| v.into())
     }
 
     pub fn get_position(&self) -> Result<Position, Error> {
-        unsafe {
-            self.get::<CGPoint>(
-                accessibility_sys::kAXPositionAttribute,
-                accessibility_sys::kAXValueTypeCGPoint,
-            )
-            .map(|v| v.into())
-        }
+        self.get::<CGPoint>(
+            accessibility_sys::kAXPositionAttribute,
+            accessibility_sys::kAXValueTypeCGPoint,
+        )
+        .map(|v| v.into())
     }
 
     pub fn is_active(&self) -> Result<bool, Error> {
-        unsafe {
-            Ok(
-                ax_ui_element_copy_attribute_value(
-                    self.0 as _,
-                    accessibility_sys::kAXFocusedAttribute,
-                )? as u8
-                    != 0,
-            )
-        }
+        Ok(self.0.attribute(&AXAttribute::focused())?.into())
     }
 }

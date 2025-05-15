@@ -1,156 +1,106 @@
 //! Bindings for macOS
 
-use core_foundation::{
-    base::{TCFType, ToVoid},
-    runloop,
-    string::{CFString, CFStringRef},
-};
+use std::rc::Rc;
 
-pub use accessibility_sys;
-pub use core_foundation;
-use helper::{ax_ui_element_copy_attribute_value, event_to_raw};
+use accessibility::{AXAttribute, AXUIElement};
 
-use crate::{Error, Event, EventCallback};
+use event::EventMacOSExt;
+use objc2_core_foundation::{CFRetained, CFRunLoop};
+use window::MacOSWindow;
 
-pub mod helper;
+use crate::{Error, Event, EventTx};
+
+pub mod ax_error;
+pub mod ax_observer;
+pub mod error_helper;
+pub mod event;
+pub mod function;
 pub mod window;
 
-pub use helper::OSError;
-pub use window::Window;
+use self::{ax_observer::AXObserver, function::ax_is_process_trusted};
 
-/* A structure that groups objects whose addresses should remain unchanged. */
-struct Controller {
-    element: accessibility_sys::AXUIElementRef,
-    pub callback: EventCallback,
-}
-
-pub struct WindowObserver {
+pub struct MacOSWindowObserver {
     _pid: i32,
-    observer: *mut accessibility_sys::__AXObserver,
-    controller: Box<Controller>,
+    running: bool,
+    runloop: CFRetained<CFRunLoop>,
+    element: Rc<AXUIElement>,
+    observer: AXObserver,
 }
 
-extern "C" fn observer_callback(
-    _observer: accessibility_sys::AXObserverRef,
-    _element: accessibility_sys::AXUIElementRef,
-    notification: CFStringRef,
-    refcon: *mut std::ffi::c_void,
-) {
-    let (notification, refcon) = unsafe {
-        (
-            CFString::wrap_under_get_rule(notification).to_string(),
-            &*(refcon as *mut Controller),
-        )
-    };
+impl MacOSWindowObserver {
+    pub fn new(pid: i32, event_tx: EventTx) -> Result<Self, crate::Error> {
+        if !ax_is_process_trusted() {
+            return Err(crate::Error::PermissinoDenied);
+        };
 
-    // Convert the notification name to enum Event.
-    let event = match notification.as_ref() {
-        "AXMoved" => Event::Moved,
-        "AXResized" => Event::Resized,
-        "AXApplicationActivated" => Event::Activated,
-        _ => {
-            return;
-        }
-    };
+        let element = Rc::new(AXUIElement::application(pid));
+        let callback = {
+            let element = Rc::clone(&element);
 
-    // Pick window.
-    let window = window::Window(unsafe {
-        ax_ui_element_copy_attribute_value(
-            refcon.element,
-            accessibility_sys::kAXFocusedWindowAttribute,
-        )
-        .unwrap()
-    } as _);
+            move |notification: String| {
+                let Some(event) = Event::from_ax_notification(&notification) else {
+                    return;
+                };
 
-    (refcon.callback)(event, crate::Window(window));
-}
+                let window_element = element.attribute(&AXAttribute::focused_window()).unwrap();
+                let window = MacOSWindow(window_element);
 
-impl WindowObserver {
-    pub fn new(pid: i32, callback: EventCallback) -> Result<Self, crate::Error> {
-        unsafe {
-            if !accessibility_sys::AXIsProcessTrusted() {
-                return Err(crate::Error::PermissinoDenied);
-            };
-        }
-
-        let mut observer = std::ptr::null_mut();
-        unsafe {
-            accessibility_sys::AXObserverCreate(pid, observer_callback, &mut observer);
-        }
-
-        let controller = Controller {
-            element: unsafe { accessibility_sys::AXUIElementCreateApplication(pid) },
-            callback,
+                event_tx.send((crate::Window(window), event)).unwrap();
+            }
         };
 
         Ok(Self {
             _pid: pid,
-            controller: Box::new(controller),
-            observer,
+            running: false,
+            runloop: CFRunLoop::current().unwrap(),
+            element,
+            observer: AXObserver::create(pid, Box::new(callback)),
         })
     }
 
     pub fn add_target_event(&self, event: Event) -> Result<(), Error> {
-        unsafe {
-            accessibility_sys::AXObserverAddNotification(
-                self.observer,
-                self.controller.element,
-                CFString::new(event_to_raw(event)).to_void() as _,
-                &*self.controller as *const _ as _,
-            );
-        };
+        self.observer
+            .add_notification(&self.element, event.ax_notification())?;
 
         Ok(())
     }
 
     pub fn remove_target_event(&self, event: Event) -> Result<(), Error> {
-        unsafe {
-            accessibility_sys::AXObserverRemoveNotification(
-                self.observer,
-                self.controller.element,
-                CFString::new(event_to_raw(event)).to_void() as _,
-            );
-        };
+        self.observer
+            .remove_notification(&self.element, event.ax_notification())?;
 
         Ok(())
     }
 
     pub fn start(&mut self) -> Result<(), Error> {
-        unsafe {
-            runloop::CFRunLoopAddSource(
-                runloop::CFRunLoopGetCurrent(),
-                accessibility_sys::AXObserverGetRunLoopSource(self.observer),
-                runloop::kCFRunLoopDefaultMode,
-            );
-        };
+        if self.running {
+            return Err(Error::AlreadyStarted);
+        }
+        self.running = true;
+
+        let source = self.observer.get_run_loop_source();
+        let source = Some(source.as_ref());
+        let mode = unsafe { objc2_core_foundation::kCFRunLoopDefaultMode };
+        self.runloop.add_source(source, mode);
 
         Ok(())
     }
 
     pub fn join(&self) {
-        unsafe { core_foundation::runloop::CFRunLoopRun() };
+        CFRunLoop::run();
     }
 
-    pub fn stop(&self) -> Result<(), Error> {
-        if !self.observer.is_null() {
-            unsafe {
-                runloop::CFRunLoopRemoveSource(
-                    runloop::CFRunLoopGetCurrent(),
-                    accessibility_sys::AXObserverGetRunLoopSource(self.observer),
-                    runloop::kCFRunLoopDefaultMode,
-                );
-            }
+    pub fn stop(&mut self) -> Result<(), Error> {
+        if !self.running {
+            return Err(Error::AlreadyStopped);
         }
 
+        let source = self.observer.get_run_loop_source();
+        let source = Some(source.as_ref());
+        let mode = unsafe { objc2_core_foundation::kCFRunLoopDefaultMode };
+        self.runloop.remove_source(source, mode);
+
+        self.running = false;
         Ok(())
-    }
-}
-
-impl Drop for WindowObserver {
-    fn drop(&mut self) {
-        self.stop().unwrap();
-        unsafe {
-            core_foundation::base::CFRelease(self.observer as _);
-        }
     }
 }

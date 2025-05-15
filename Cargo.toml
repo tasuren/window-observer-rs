@@ -1,26 +1,34 @@
 [package]
 name = "window-observer"
-version = "0.1.0-alpha"
+version = "0.1.0-beta"
 edition = "2021"
 
 [dependencies]
-thiserror = "1.0.63"
+thiserror = "1.0.69"
+tokio = { version = "1.44.2", default-features = false, features = ["sync"] }
 
 [target.'cfg(target_os = "windows")'.dependencies.windows]
 version = "0.58.0"
-features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Accessibility"]
+features = [
+    "Win32_Foundation",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Accessibility",
+]
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wineventhook = "0.9.0"
-tokio = { version = "1.39.2", features = ["sync"]}
+tokio = { version = "1.44.2", features = ["sync"] }
 pollster = "0.3.0"
-smallvec = "1.13.2"
+smallvec = "1.15.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-accessibility-sys = "0.1.3"
-core-foundation = "0.9.4"
+accessibility = "0.2.0"
+accessibility-sys = "0.2.0"
+core-foundation = "0.10.0"
 objc2 = "0.5.2"
 objc2-foundation = { version = "0.2.2", features = ["NSGeometry"] }
+objc2-core-foundation = { version = "0.3.1", features = ["CFString"] }
 
 [dev-dependencies]
 libui = "0.4.0"
+tokio = { version = "1.44.2", features = ["rt", "macros", "rt-multi-thread"] }

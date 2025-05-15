@@ -12,7 +12,7 @@ pub enum Error {
     #[error("Permission denied.")]
     PermissinoDenied,
     #[error("A platform-specific error occurred: {0:?}")]
-    PlatformSpecificError(#[source] platform_impl::OSError),
+    PlatformSpecificError(platform_impl::OSError),
 }
 
 #[derive(Debug, PartialEq)]
@@ -22,16 +22,16 @@ pub enum Event {
     Activated,
 }
 
-pub type EventCallback = Box<dyn Fn(Event, Window)>;
+pub type EventTx = tokio::sync::mpsc::UnboundedSender<(crate::Window, Event)>;
 
 pub struct WindowObserver {
     sys: platform_impl::WindowObserver,
 }
 
 impl WindowObserver {
-    pub fn new(pid: i32, callback: EventCallback) -> Result<Self, Error> {
+    pub fn new(pid: i32, event_tx: EventTx) -> Result<Self, Error> {
         Ok(Self {
-            sys: platform_impl::WindowObserver::new(pid, callback)?,
+            sys: platform_impl::WindowObserver::new(pid, event_tx)?,
         })
     }
 
