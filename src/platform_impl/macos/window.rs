@@ -8,7 +8,8 @@ use crate::{
 
 use super::function::{ax_ui_element_copy_attribute_value, ax_value_get_value};
 
-pub struct MacOSWindow(pub AXUIElement);
+/// Represents a macOS window and provides methods to interact with it.
+pub struct MacOSWindow(AXUIElement);
 unsafe impl Send for MacOSWindow {}
 unsafe impl Sync for MacOSWindow {}
 
@@ -31,11 +32,23 @@ impl From<CGPoint> for Position {
 }
 
 impl MacOSWindow {
+    /// Creates a new `MacOSWindow` instance from an `AXUIElement`.
+    pub fn new(element: AXUIElement) -> Self {
+        Self(element)
+    }
+
+    /// Retrieves the underlying `AXUIElement`.
+    pub fn ax_ui_element(&self) -> &AXUIElement {
+        &self.0
+    }
+
+    /// Retrieves a specific attribute of the window via `AXUIElement`.
     fn get<T>(&self, attribute: &str, r#type: accessibility_sys::AXValueType) -> Result<T, Error> {
         let ax_value = ax_ui_element_copy_attribute_value(&self.0, attribute)?;
         Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
     }
 
+    /// Retrieves the size of the window.
     pub fn get_size(&self) -> Result<Size, Error> {
         self.get::<CGSize>(
             accessibility_sys::kAXSizeAttribute,
@@ -44,6 +57,7 @@ impl MacOSWindow {
         .map(|v| v.into())
     }
 
+    /// Retrieves the position of the window.
     pub fn get_position(&self) -> Result<Position, Error> {
         self.get::<CGPoint>(
             accessibility_sys::kAXPositionAttribute,
@@ -52,6 +66,7 @@ impl MacOSWindow {
         .map(|v| v.into())
     }
 
+    /// Checks if the window is currently active.
     pub fn is_active(&self) -> Result<bool, Error> {
         Ok(self.0.attribute(&AXAttribute::focused())?.into())
     }
