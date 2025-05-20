@@ -2,8 +2,7 @@
 pub mod macos;
 #[cfg(target_os = "macos")]
 pub use macos::{
-    AXError as OSError, window::MacOSWindow as Window,
-    MacOSWindowObserver as WindowObserver,
+    window::MacOSWindow as Window, AXError as OSError, MacOSWindowObserver as WindowObserver,
 };
 
 #[cfg(target_os = "windows")]
