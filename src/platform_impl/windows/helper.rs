@@ -1,21 +1,27 @@
 use std::mem::MaybeUninit;
 
-use smallvec::{smallvec, SmallVec};
 use windows::Win32::{Foundation, UI::WindowsAndMessaging};
-use wineventhook::{MaybeKnown, SystemWindowEvent, WindowEventType};
+use wineventhook::{MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEventType};
 
 use crate::Event;
 
-pub fn make_event(event: wineventhook::WindowEvent) -> SmallVec<[Event; 2]> {
+pub fn make_event(event: wineventhook::WindowEvent) -> Option<Event> {
     if let WindowEventType::System(MaybeKnown::Known(event)) = event.event_type() {
-        return match event {
-            SystemWindowEvent::MoveSizeEnd => smallvec![Event::Moved, Event::Resized],
-            SystemWindowEvent::Foreground => smallvec![Event::Activated],
-            _ => SmallVec::default(),
-        };
+        return Some(match event {
+            SystemWindowEvent::MoveSizeEnd => Event::Resized,
+            SystemWindowEvent::Foreground => Event::Activated,
+            _ => return None,
+        });
     };
 
-    SmallVec::default()
+    if let WindowEventType::Object(MaybeKnown::Known(event)) = event.event_type() {
+        return Some(match event {
+            ObjectWindowEvent::LocationChange => Event::Moved,
+            _ => return None,
+        });
+    };
+
+    None
 }
 
 pub fn get_window_rect(hwnd: Foundation::HWND) -> windows::core::Result<Foundation::RECT> {
