@@ -6,4 +6,4 @@ pub use macos::{window::MacOSWindow as Window, MacOSWindowObserver as WindowObse
 #[cfg(target_os = "windows")]
 pub mod windows;
 #[cfg(target_os = "windows")]
-pub use windows::{OSError, Window, WindowObserver};
+pub use windows::{OSError, WindowsWindow as Window, WindowsWindowObserver as WindowObserver};

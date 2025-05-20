@@ -48,7 +48,12 @@ impl WindowObserver {
         })
     }
 
-    pub async fn stop(self) {
+    pub async fn stop(self) -> Result<(), Error> {
+        #[cfg(target_os = "macos")]
         self.sys.stop().await;
+        #[cfg(target_os = "windows")]
+        self.sys.stop().await?;
+
+        Ok(())
     }
 }
