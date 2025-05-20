@@ -51,7 +51,7 @@ impl AXObserver {
     }
 
     /// Retrieves the `AXObserverRef` being used by this.
-    pub fn sys(&self) -> AXObserverRef {
+    pub fn raw(&self) -> AXObserverRef {
         self.raw
     }
 

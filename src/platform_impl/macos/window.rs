@@ -6,7 +6,7 @@ use crate::{
     Error,
 };
 
-use super::function::{ax_ui_element_copy_attribute_value, ax_value_get_value};
+use super::ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value};
 
 /// Represents a macOS window and provides methods to interact with it.
 pub struct MacOSWindow(AXUIElement);

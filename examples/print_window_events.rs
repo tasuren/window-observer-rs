@@ -1,4 +1,4 @@
-use window_observer::{self, Event};
+use window_observer::{self, Event, WindowObserver};
 
 fn print_event(window: window_observer::Window, event: Event) {
     match event {
@@ -10,24 +10,18 @@ fn print_event(window: window_observer::Window, event: Event) {
 
 #[tokio::main]
 async fn main() {
+    let pid = std::env::var("PID")
+        .map(|v| v.parse().unwrap())
+        .expect("Please give me the env `PID` of application that has window.");
+
     let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel();
-    let mut window_observer = window_observer::WindowObserver::new(
-        std::env::var("PID")
-            .map(|v| v.parse().unwrap())
-            .expect("Please give me the env `PID` of application that has window."),
-        event_tx,
-    )
-    .unwrap();
+    let event_filter = window_observer::smallvec![Event::Activated, Event::Moved, Event::Resized];
 
-    window_observer.add_target_event(Event::Activated).unwrap();
-    window_observer.add_target_event(Event::Moved).unwrap();
-    window_observer.add_target_event(Event::Resized).unwrap();
+    let _window_observer = WindowObserver::start(pid, event_tx, event_filter)
+        .await
+        .unwrap();
 
-    tokio::spawn(async move {
-        while let Some((window, event)) = event_rx.recv().await {
-            print_event(window, event);
-        }
-    });
-
-    window_observer.run().unwrap();
+    while let Some((window, event)) = event_rx.recv().await {
+        print_event(window, event);
+    }
 }
