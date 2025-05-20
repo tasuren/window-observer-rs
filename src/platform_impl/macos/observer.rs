@@ -2,7 +2,7 @@ use super::{
     ax_function::ax_is_process_trusted,
     thread::{make_observe_thread, EventLoopController},
 };
-use crate::{EventFilter, EventTx};
+use crate::{Error, EventFilter, EventTx};
 
 /// Observes macOS window events and provides an interface to manage them.
 /// This is wrapper of `AXObserver`.
@@ -17,9 +17,9 @@ impl MacOSWindowObserver {
         pid: i32,
         event_tx: EventTx,
         event_filter: EventFilter,
-    ) -> Result<Self, crate::Error> {
+    ) -> Result<Self, Error> {
         if !ax_is_process_trusted() {
-            return Err(crate::Error::PermissinoDenied);
+            return Err(Error::PermissinoDenied);
         };
 
         let (controller_tx, controller_rx) = tokio::sync::oneshot::channel();

@@ -1,12 +1,11 @@
 use accessibility::{AXAttribute, AXUIElement};
 use objc2_foundation::{CGPoint, CGSize};
 
-use crate::{
-    window::{Position, Size},
-    Error,
+use super::{
+    ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value},
+    OSError,
 };
-
-use super::ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value};
+use crate::window::{Position, Size};
 
 /// Represents a macOS window and provides methods to interact with it.
 pub struct MacOSWindow(AXUIElement);
@@ -43,13 +42,17 @@ impl MacOSWindow {
     }
 
     /// Retrieves a specific attribute of the window via `AXUIElement`.
-    fn get<T>(&self, attribute: &str, r#type: accessibility_sys::AXValueType) -> Result<T, Error> {
+    fn get<T>(
+        &self,
+        attribute: &str,
+        r#type: accessibility_sys::AXValueType,
+    ) -> Result<T, OSError> {
         let ax_value = ax_ui_element_copy_attribute_value(&self.0, attribute)?;
         Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
     }
 
     /// Retrieves the size of the window.
-    pub fn get_size(&self) -> Result<Size, Error> {
+    pub fn get_size(&self) -> Result<Size, OSError> {
         self.get::<CGSize>(
             accessibility_sys::kAXSizeAttribute,
             accessibility_sys::kAXValueTypeCGSize,
@@ -58,7 +61,7 @@ impl MacOSWindow {
     }
 
     /// Retrieves the position of the window.
-    pub fn get_position(&self) -> Result<Position, Error> {
+    pub fn get_position(&self) -> Result<Position, OSError> {
         self.get::<CGPoint>(
             accessibility_sys::kAXPositionAttribute,
             accessibility_sys::kAXValueTypeCGPoint,
@@ -67,7 +70,14 @@ impl MacOSWindow {
     }
 
     /// Checks if the window is currently active.
-    pub fn is_active(&self) -> Result<bool, Error> {
-        Ok(self.0.attribute(&AXAttribute::focused())?.into())
+    pub fn is_active(&self) -> Result<bool, OSError> {
+        Ok(self
+            .0
+            .attribute(&AXAttribute::focused())
+            .map_err(|e| match e {
+                accessibility::Error::Ax(raw) => OSError::from(raw),
+                _ => panic!("Unexpected error is occurred: {}", e),
+            })?
+            .into())
     }
 }

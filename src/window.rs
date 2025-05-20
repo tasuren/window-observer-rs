@@ -24,16 +24,16 @@ pub struct Window(pub(crate) crate::platform_impl::Window);
 impl Window {
     /// Retrieves the size of the window.
     pub fn get_size(&self) -> Result<Size, Error> {
-        self.0.get_size()
+        Ok(self.0.get_size()?)
     }
 
     /// Retrieves the position of the window.
     pub fn get_position(&self) -> Result<Position, Error> {
-        self.0.get_position()
+        Ok(self.0.get_position()?)
     }
 
     /// Checks if the window is currently active.
     pub fn is_active(&self) -> Result<bool, Error> {
-        self.0.is_active()
+        Ok(self.0.is_active()?)
     }
 }
