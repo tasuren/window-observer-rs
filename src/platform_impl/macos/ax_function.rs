@@ -5,7 +5,7 @@ use core_foundation::{
     string::CFString,
 };
 
-use super::error_helper::AXErrorIntoResult;
+use super::error::AXErrorIntoResult;
 
 /// Copies the value of a specified attribute from an `AXUIElement`.
 ///

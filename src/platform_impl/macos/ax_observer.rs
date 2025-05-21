@@ -5,7 +5,7 @@ use accessibility_sys::{pid_t, AXError, AXObserverRef};
 use core_foundation::base::TCFType;
 use objc2_core_foundation::{CFRetained, CFRunLoopSource, CFString};
 
-use super::error_helper::AXErrorIntoResult;
+use super::error::AXErrorIntoResult;
 
 type Callback = Box<dyn Fn(String)>;
 
