@@ -13,7 +13,7 @@ async fn handle_events(
 ) {
     while let Some(event) = rx.recv().await {
         if let Some(hwnd) = event.window_handle() {
-            let Some(event) = super::helper::make_event(event) else {
+            let Some(event) = super::event::make_event(event) else {
                 continue;
             };
 

@@ -1,6 +1,3 @@
-use std::mem::MaybeUninit;
-
-use windows::Win32::{Foundation, UI::WindowsAndMessaging};
 use wineventhook::{MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEventType};
 
 use crate::Event;
@@ -22,13 +19,4 @@ pub fn make_event(event: wineventhook::WindowEvent) -> Option<Event> {
     };
 
     None
-}
-
-pub fn get_window_rect(hwnd: Foundation::HWND) -> windows::core::Result<Foundation::RECT> {
-    let mut value = MaybeUninit::uninit();
-
-    unsafe {
-        WindowsAndMessaging::GetWindowRect(hwnd, value.as_mut_ptr())?;
-        Ok(value.assume_init())
-    }
 }
