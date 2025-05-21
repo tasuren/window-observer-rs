@@ -1,5 +1,5 @@
 use accessibility::{AXAttribute, AXUIElement};
-use objc2_foundation::{CGPoint, CGSize};
+use objc2_core_foundation::{CGPoint, CGSize};
 
 use super::{
     ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value},
