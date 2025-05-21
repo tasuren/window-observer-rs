@@ -1,7 +1,35 @@
+use binding::get_window_text;
 use windows::Win32::{Foundation, UI::WindowsAndMessaging};
 
-use super::{helper, OSError};
+use super::OSError;
 use crate::window;
+
+mod binding {
+    use std::mem::MaybeUninit;
+
+    use windows::Win32::{Foundation, UI::WindowsAndMessaging};
+
+    pub fn get_window_rect(hwnd: Foundation::HWND) -> windows::core::Result<Foundation::RECT> {
+        let mut value = MaybeUninit::uninit();
+
+        unsafe {
+            WindowsAndMessaging::GetWindowRect(hwnd, value.as_mut_ptr())?;
+            Ok(value.assume_init())
+        }
+    }
+
+    pub fn get_window_text(hwnd: Foundation::HWND) -> windows::core::Result<String> {
+        let mut buffer = [0u16; 256];
+        let length = unsafe { WindowsAndMessaging::GetWindowTextW(hwnd, &mut buffer) };
+
+        if length == 0 {
+            return Err(windows::core::Error::from_win32());
+        }
+
+        let text = String::from_utf16_lossy(&buffer[..length as usize]);
+        Ok(text)
+    }
+}
 
 pub struct WindowsWindow(Foundation::HWND);
 unsafe impl Send for WindowsWindow {}
@@ -16,8 +44,12 @@ impl WindowsWindow {
         self.0
     }
 
+    pub fn get_title(&self) -> Result<String, OSError> {
+        Ok(get_window_text(self.0)?)
+    }
+
     pub fn get_rect(&self) -> Result<Foundation::RECT, OSError> {
-        Ok(helper::get_window_rect(self.0)?)
+        Ok(binding::get_window_rect(self.0)?)
     }
 
     pub fn get_size(&self) -> Result<window::Size, OSError> {
