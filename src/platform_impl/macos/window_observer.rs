@@ -3,7 +3,7 @@ use accessibility::{AXAttribute, AXUIElement};
 use super::{
     ax_function::ax_is_process_trusted,
     ax_observer::AXObserver,
-    event_helper::EventMacOSExt,
+    event::EventMacOSExt,
     event_loop::{event_loop, ObserverSource},
     window::MacOSWindow,
 };
