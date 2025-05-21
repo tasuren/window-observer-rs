@@ -2,6 +2,7 @@ use wineventhook::{MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEvent
 
 use crate::Event;
 
+/// Converts a `wineventhook::WindowEvent` into a library-specific `Event`.
 pub fn make_event(event: wineventhook::WindowEvent) -> Option<Event> {
     if let WindowEventType::System(MaybeKnown::Known(event)) = event.event_type() {
         return Some(match event {

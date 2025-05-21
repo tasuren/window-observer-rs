@@ -31,27 +31,33 @@ mod binding {
     }
 }
 
+/// Represents a window on the Windows platform.
 pub struct WindowsWindow(Foundation::HWND);
 unsafe impl Send for WindowsWindow {}
 unsafe impl Sync for WindowsWindow {}
 
 impl WindowsWindow {
+    /// Creates a new `WindowsWindow` from a window handle.
     pub fn new(hwnd: Foundation::HWND) -> Self {
         Self(hwnd)
     }
 
+    /// Retrieves the window handle.
     pub fn hwnd(&self) -> Foundation::HWND {
         self.0
     }
 
+    /// Retrieves the title of the window.
     pub fn get_title(&self) -> Result<String, OSError> {
         Ok(get_window_text(self.0)?)
     }
 
+    /// Retrieves the rectangle of the window.
     pub fn get_rect(&self) -> Result<Foundation::RECT, OSError> {
         Ok(binding::get_window_rect(self.0)?)
     }
 
+    /// Retrieves the size of the window.
     pub fn get_size(&self) -> Result<window::Size, OSError> {
         let rect = self.get_rect()?;
 
@@ -61,6 +67,7 @@ impl WindowsWindow {
         })
     }
 
+    /// Retrieves the position of the window.
     pub fn get_position(&self) -> Result<window::Position, OSError> {
         let rect = self.get_rect()?;
 
@@ -70,6 +77,7 @@ impl WindowsWindow {
         })
     }
 
+    /// Checks if the window is currently active.
     pub fn is_active(&self) -> Result<bool, OSError> {
         Ok(self.0 == unsafe { WindowsAndMessaging::GetForegroundWindow() })
     }
