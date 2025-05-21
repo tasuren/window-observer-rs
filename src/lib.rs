@@ -12,7 +12,7 @@ pub enum Error {
     PermissinoDenied,
     /// A platform-specific error occurred.
     #[error("A platform-specific error occurred: {0:?}")]
-    PlatformSpecificError(platform_impl::OSError),
+    PlatformSpecificError(#[from] platform_impl::OSError),
 }
 
 /// Represents events that can be observed on a window.

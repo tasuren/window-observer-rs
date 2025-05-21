@@ -33,7 +33,9 @@ impl From<CGPoint> for Position {
 impl MacOSWindow {
     /// Creates a new `MacOSWindow` instance from an `AXUIElement`.
     pub fn new(element: AXUIElement) -> Self {
-        Self(element)
+        let e = Self(element);
+        e.get_window_id().unwrap();
+        e
     }
 
     /// Retrieves the underlying `AXUIElement`.
@@ -47,8 +49,20 @@ impl MacOSWindow {
         attribute: &str,
         r#type: accessibility_sys::AXValueType,
     ) -> Result<T, OSError> {
-        let ax_value = ax_ui_element_copy_attribute_value(&self.0, attribute)?;
+        let ax_value =
+            ax_ui_element_copy_attribute_value(&self.0, attribute).map_err(OSError::Ax)?;
         Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
+    }
+
+    pub fn get_window_id(&self) -> Result<(), OSError> {
+        println!("{:?}", self.0.attribute_names().unwrap());
+        println!("aa {:?}", self.0.attribute(&AXAttribute::main()).unwrap());
+        println!(
+            "aa {:?}",
+            self.0.attribute(&AXAttribute::focused()).unwrap()
+        );
+        println!("aa {}", self.0.attribute(&AXAttribute::title()).unwrap());
+        Ok(())
     }
 
     /// Retrieves the size of the window.
@@ -71,13 +85,6 @@ impl MacOSWindow {
 
     /// Checks if the window is currently active.
     pub fn is_active(&self) -> Result<bool, OSError> {
-        Ok(self
-            .0
-            .attribute(&AXAttribute::focused())
-            .map_err(|e| match e {
-                accessibility::Error::Ax(raw) => OSError::from(raw),
-                _ => panic!("Unexpected error is occurred: {}", e),
-            })?
-            .into())
+        Ok(self.0.attribute(&AXAttribute::focused())?.into())
     }
 }
