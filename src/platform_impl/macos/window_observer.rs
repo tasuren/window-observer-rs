@@ -4,7 +4,7 @@ use super::{
     ax_function::ax_is_process_trusted,
     ax_observer::AXObserver,
     event::EventMacOSExt,
-    event_loop::{event_loop, ObserverSource},
+    event_loop::{event_loop, get_event_loop, ObserverSource},
     window::MacOSWindow,
 };
 use crate::{Error, Event, EventFilter, EventTx};
@@ -13,6 +13,7 @@ use crate::{Error, Event, EventFilter, EventTx};
 /// This is wrapper of `AXObserver`.
 pub struct MacOSWindowObserver {
     source: ObserverSource,
+    stopped: bool,
 }
 
 impl MacOSWindowObserver {
@@ -45,14 +46,30 @@ impl MacOSWindowObserver {
         let source = ObserverSource::new(observer);
 
         // Register the observer to the event loop. It will start receiving events.
-        event_loop().await.register(&source);
+        event_loop().await.register(source.get());
 
-        Ok(Self { source })
+        Ok(Self {
+            source,
+            stopped: false,
+        })
     }
 
     /// Stops the observer.
-    pub async fn stop(self) {
-        event_loop().await.unregister(&self.source);
+    pub async fn stop(mut self) {
+        event_loop().await.unregister(self.source.get());
+        self.stopped = true;
+    }
+}
+
+impl Drop for MacOSWindowObserver {
+    fn drop(&mut self) {
+        if !self.stopped {
+            // Unregister the observer in case the `stop` method was not called.
+            get_event_loop()
+                .expect("The event loop is not started.")
+                .unregister(self.source.get());
+            self.stopped = true;
+        }
     }
 }
 

@@ -35,18 +35,16 @@ impl EventLoop {
         Self { run_loop, handle }
     }
 
-    pub fn register(&self, observer_source: &ObserverSource) {
-        let source = observer_source.get();
-        let source_ref = Some(source.as_ref());
+    pub fn register(&self, source: CFRetained<CFRunLoopSource>) {
+        let source = Some(source.as_ref());
         let mode = unsafe { kCFRunLoopDefaultMode };
 
-        self.run_loop.add_source(source_ref, mode);
+        self.run_loop.add_source(source, mode);
 
         self.handle.thread().unpark();
     }
 
-    pub fn unregister(&self, observer_source: &ObserverSource) {
-        let source = observer_source.get();
+    pub fn unregister(&self, source: CFRetained<CFRunLoopSource>) {
         let source = Some(source.as_ref());
         let mode = unsafe { kCFRunLoopDefaultMode };
 
@@ -62,6 +60,10 @@ pub(crate) async fn event_loop() -> &'static EventLoop {
     EVENT_LOOP
         .get_or_init(|| async { EventLoop::new().await })
         .await
+}
+
+pub(crate) fn get_event_loop<'a>() -> Option<&'a EventLoop> {
+    EVENT_LOOP.get()
 }
 
 /// A wrapper for `CFRunLoopSource` and `AXObserver`.

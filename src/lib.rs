@@ -48,6 +48,7 @@ impl WindowObserver {
         })
     }
 
+    /// Stops the observer and cleans up resources.
     pub async fn stop(self) -> Result<(), Error> {
         #[cfg(target_os = "macos")]
         self.sys.stop().await;
