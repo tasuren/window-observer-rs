@@ -1,4 +1,4 @@
-//! Bindings for macOS
+//! macOS-specific implementation for the observer.
 
 pub mod application_observer;
 pub mod ax_function;
