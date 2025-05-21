@@ -1,5 +1,8 @@
 # window-observer-rs
-**It is not production ready yet.**
+This crate provides an observer that receives events such as window movement and resizing.
+It is designed to receive window events on Windows and macOS for cross-platform applications.
+
+**⚠️ It is not production ready yet. Expect extremely disruptive changes.**
 
 ## ToDo
 First release todos:
@@ -9,12 +12,14 @@ First release todos:
   - [x] Foreground detection
   - [x] Resize detection with information such as width, height
   - [x] Move detection with information such as x, y.
+  - [x] Get the window title
 - [x] Windows
   - [x] Resize detection
   - [x] Move detectio
   - [x] Foreground detectionn
   - [x] Resize detection with information such as width, height
   - [x] Move detection with information such as x, y.
+  - [x] Get the window title
 - [ ] Linux?
   I have no plans to make this at this time due to my inexperienced knowledge about Linux.  
   But I'd be happy to receive pull requests.
