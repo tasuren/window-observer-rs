@@ -24,7 +24,7 @@ impl MacOSWindowObserver {
         event_filter: EventFilter,
     ) -> Result<Self, Error> {
         if !ax_is_process_trusted() {
-            return Err(Error::PermissinoDenied);
+            return Err(Error::PermissionDenied);
         };
 
         // Instantiate `AXObserver`.

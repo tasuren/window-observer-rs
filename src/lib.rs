@@ -9,7 +9,7 @@ pub use ::{smallvec, smallvec::smallvec};
 pub enum Error {
     /// Permission denied error.
     #[error("Permission denied.")]
-    PermissinoDenied,
+    PermissionDenied,
     /// A platform-specific error occurred.
     #[error("A platform-specific error occurred: {0:?}")]
     PlatformSpecificError(#[from] platform_impl::OSError),
