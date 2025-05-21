@@ -33,9 +33,7 @@ impl From<CGPoint> for Position {
 impl MacOSWindow {
     /// Creates a new `MacOSWindow` instance from an `AXUIElement`.
     pub fn new(element: AXUIElement) -> Self {
-        let e = Self(element);
-        //e.get_window_id().unwrap();
-        e
+        Self(element)
     }
 
     /// Retrieves the underlying `AXUIElement`.
@@ -56,17 +54,6 @@ impl MacOSWindow {
 
     pub fn get_title(&self) -> Result<String, OSError> {
         Ok(self.0.attribute(&AXAttribute::title())?.to_string())
-    }
-
-    pub fn get_window_id(&self) -> Result<(), OSError> {
-        println!("{:?}", self.0.attribute_names().unwrap());
-        println!("aa {:?}", self.0.attribute(&AXAttribute::main()).unwrap());
-        println!(
-            "aa {:?}",
-            self.0.attribute(&AXAttribute::focused()).unwrap()
-        );
-        println!("aa {}", self.0.attribute(&AXAttribute::title()).unwrap());
-        Ok(())
     }
 
     /// Retrieves the size of the window.
