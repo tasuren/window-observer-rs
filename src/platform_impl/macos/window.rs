@@ -52,6 +52,7 @@ impl MacOSWindow {
         Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
     }
 
+    /// Retrieves the title of the window.
     pub fn get_title(&self) -> Result<String, OSError> {
         Ok(self.0.attribute(&AXAttribute::title())?.to_string())
     }

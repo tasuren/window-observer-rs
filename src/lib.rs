@@ -28,6 +28,7 @@ pub enum Event {
 
 /// A type alias for the window event transmission channel.
 pub type EventTx = tokio::sync::mpsc::UnboundedSender<(crate::Window, Event)>;
+/// A type alias for the event filter used to specify which events to observe.
 pub type EventFilter = smallvec::SmallVec<[Event; 3]>;
 
 /// Observes window events.
