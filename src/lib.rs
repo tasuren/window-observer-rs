@@ -7,7 +7,7 @@ pub use ::{smallvec, smallvec::smallvec};
 /// Represents errors that can occur in the library.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    /// Permission denied error.
+    /// Permission denied error. This error only occurs on macOS.
     #[error("Permission denied.")]
     PermissionDenied,
     /// A platform-specific error occurred.
