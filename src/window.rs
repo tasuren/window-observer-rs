@@ -22,6 +22,16 @@ pub struct Position {
 pub struct Window(pub(crate) crate::platform_impl::Window);
 
 impl Window {
+    /// Retrieves the underlying platform-specific window implementation.
+    pub fn platform_impl(&self) -> &crate::platform_impl::Window {
+        &self.0
+    }
+
+    /// Retrieves the title of the window.
+    pub fn get_title(&self) -> Result<String, Error> {
+        Ok(self.0.get_title()?)
+    }
+
     /// Retrieves the size of the window.
     pub fn get_size(&self) -> Result<Size, Error> {
         Ok(self.0.get_size()?)

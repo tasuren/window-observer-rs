@@ -34,7 +34,7 @@ impl MacOSWindow {
     /// Creates a new `MacOSWindow` instance from an `AXUIElement`.
     pub fn new(element: AXUIElement) -> Self {
         let e = Self(element);
-        e.get_window_id().unwrap();
+        //e.get_window_id().unwrap();
         e
     }
 
@@ -52,6 +52,10 @@ impl MacOSWindow {
         let ax_value =
             ax_ui_element_copy_attribute_value(&self.0, attribute).map_err(OSError::Ax)?;
         Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
+    }
+
+    pub fn get_title(&self) -> Result<String, OSError> {
+        Ok(self.0.attribute(&AXAttribute::title())?.to_string())
     }
 
     pub fn get_window_id(&self) -> Result<(), OSError> {

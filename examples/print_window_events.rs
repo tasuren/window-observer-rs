@@ -1,8 +1,13 @@
 use window_observer::{self, Event, WindowObserver};
 
 fn print_event(window: window_observer::Window, event: Event) {
+    println!(
+        "\nThe window event is fired: {}",
+        window.get_title().unwrap()
+    );
+
     match event {
-        Event::Activated => println!("Is window main: {}", window.is_active().unwrap()),
+        Event::Activated => println!("Window is now main"),
         Event::Moved => println!("Window current position: {:?}", window.get_position()),
         Event::Resized => println!("Window current size: {:?}", window.get_size()),
     };
