@@ -89,6 +89,6 @@ impl MacOSWindow {
 
     /// Checks if the window is currently active.
     pub fn is_active(&self) -> Result<bool, OSError> {
-        Ok(self.0.attribute(&AXAttribute::focused())?.into())
+        Ok(self.0.attribute(&AXAttribute::main())?.into())
     }
 }
