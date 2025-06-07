@@ -1,6 +1,5 @@
 //! macOS-specific implementation for the observer.
 
-pub mod application_observer;
 pub mod ax_function;
 pub mod ax_observer;
 pub mod error;
