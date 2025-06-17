@@ -54,12 +54,12 @@ impl MacOSWindow {
     }
 
     /// Retrieves the title of the window.
-    pub fn get_title(&self) -> Result<String, OSError> {
+    pub fn title(&self) -> Result<String, OSError> {
         Ok(self.0.attribute(&AXAttribute::title())?.to_string())
     }
 
     /// Retrieves the size of the window.
-    pub fn get_size(&self) -> Result<Size, OSError> {
+    pub fn size(&self) -> Result<Size, OSError> {
         self.get::<CGSize>(
             accessibility_sys::kAXSizeAttribute,
             accessibility_sys::kAXValueTypeCGSize,
@@ -68,7 +68,7 @@ impl MacOSWindow {
     }
 
     /// Retrieves the position of the window.
-    pub fn get_position(&self) -> Result<Position, OSError> {
+    pub fn position(&self) -> Result<Position, OSError> {
         self.get::<CGPoint>(
             accessibility_sys::kAXPositionAttribute,
             accessibility_sys::kAXValueTypeCGPoint,
@@ -89,7 +89,7 @@ impl MacOSWindow {
     ///
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
     #[cfg(feature = "macos-id")]
-    pub fn get_id(&self) -> Result<u32, OSError> {
+    pub fn id(&self) -> Result<u32, OSError> {
         use std::mem::MaybeUninit;
 
         use accessibility_sys::{AXError, AXUIElementRef};

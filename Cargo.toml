@@ -28,9 +28,12 @@ accessibility = "0.2.0"
 accessibility-sys = "0.2.0"
 core-foundation = "0.10.0"
 objc2 = "0.6.1"
-objc2-foundation = { version = "0.3.1", features = ["NSNotification"] }
-objc2-core-foundation = { version = "0.3.1", features = ["CFString"] }
-objc2-app-kit = "0.3.1"
+objc2-foundation = { version = "0.3.1", default-features = false, features = [
+    "NSNotification",
+] }
+objc2-core-foundation = { version = "0.3.1", default-features = false, features = [
+    "CFString",
+] }
 
 [dev-dependencies]
 tokio = { version = "1.45.0", features = ["rt", "macros", "rt-multi-thread"] }

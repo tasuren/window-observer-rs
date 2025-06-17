@@ -18,8 +18,8 @@ fn print_event(window: window_observer::Window, event: Event) {
 
     match event {
         Event::Activated => println!("Window is now main"),
-        Event::Moved => println!("Window current position: {:?}", window.get_position()),
-        Event::Resized => println!("Window current size: {:?}", window.get_size()),
+        Event::Moved => println!("Window current position: {:?}", window.position()),
+        Event::Resized => println!("Window current size: {:?}", window.size()),
     };
 }
 
