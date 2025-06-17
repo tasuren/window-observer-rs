@@ -1,3 +1,7 @@
+#![doc = include_str!("../README.md")]
+
+pub use window_getter;
+
 pub mod platform_impl;
 pub mod window;
 

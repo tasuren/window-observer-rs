@@ -1,7 +1,5 @@
 use window_getter::Bounds;
 
-pub use window_getter;
-
 use crate::{platform_impl::PlatformWindow, Error};
 
 /// Represents the size of a window.

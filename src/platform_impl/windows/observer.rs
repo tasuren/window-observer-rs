@@ -4,7 +4,7 @@ use crate::{Error, EventTx};
 
 use super::task::make_wineventhook_task;
 
-/// Observes window events on the Windows platform.
+/// Observes window events on the Windows platform by using [wineventhook].
 pub struct PlatformWindowObserver {
     hook: WindowEventHook,
 }
