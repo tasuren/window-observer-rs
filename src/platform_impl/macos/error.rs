@@ -1,4 +1,4 @@
-pub use accessibility::Error as OSError;
+pub use accessibility::Error as PlatformError;
 use accessibility_sys::AXError;
 
 /// A trait to convert `AXError` into a `Result` type.

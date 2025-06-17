@@ -3,15 +3,16 @@ use objc2_core_foundation::{CGPoint, CGSize};
 
 use super::{
     ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value},
-    OSError,
+    PlatformError,
 };
 use crate::window::{Position, Size};
 
 /// Represents a macOS window and provides methods to interact with it.
-pub struct MacOSWindow(AXUIElement);
+/// This is the wrapper of [`AXUIElement`].
+pub struct PlatformWindow(AXUIElement);
 
-unsafe impl Send for MacOSWindow {}
-unsafe impl Sync for MacOSWindow {}
+unsafe impl Send for PlatformWindow {}
+unsafe impl Sync for PlatformWindow {}
 
 impl From<CGSize> for Size {
     fn from(size: CGSize) -> Self {
@@ -31,35 +32,35 @@ impl From<CGPoint> for Position {
     }
 }
 
-impl MacOSWindow {
-    /// Creates a new `MacOSWindow` instance from an `AXUIElement`.
+impl PlatformWindow {
+    /// Creates a new [`PlatformWindow`] instance from an [`AXUIElement`].
     pub fn new(element: AXUIElement) -> Self {
         Self(element)
     }
 
-    /// Retrieves the underlying `AXUIElement`.
+    /// Retrieves the underlying [`AXUIElement`].
     pub fn ax_ui_element(&self) -> &AXUIElement {
         &self.0
     }
 
-    /// Retrieves a specific attribute of the window via `AXUIElement`.
+    /// Retrieves a specific attribute of the window via [`AXUIElement`].
     fn get<T>(
         &self,
         attribute: &str,
         r#type: accessibility_sys::AXValueType,
-    ) -> Result<T, OSError> {
+    ) -> Result<T, PlatformError> {
         let ax_value =
-            ax_ui_element_copy_attribute_value(&self.0, attribute).map_err(OSError::Ax)?;
+            ax_ui_element_copy_attribute_value(&self.0, attribute).map_err(PlatformError::Ax)?;
         Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
     }
 
     /// Retrieves the title of the window.
-    pub fn title(&self) -> Result<String, OSError> {
+    pub fn title(&self) -> Result<String, PlatformError> {
         Ok(self.0.attribute(&AXAttribute::title())?.to_string())
     }
 
     /// Retrieves the size of the window.
-    pub fn size(&self) -> Result<Size, OSError> {
+    pub fn size(&self) -> Result<Size, PlatformError> {
         self.get::<CGSize>(
             accessibility_sys::kAXSizeAttribute,
             accessibility_sys::kAXValueTypeCGSize,
@@ -68,7 +69,7 @@ impl MacOSWindow {
     }
 
     /// Retrieves the position of the window.
-    pub fn position(&self) -> Result<Position, OSError> {
+    pub fn position(&self) -> Result<Position, PlatformError> {
         self.get::<CGPoint>(
             accessibility_sys::kAXPositionAttribute,
             accessibility_sys::kAXValueTypeCGPoint,
@@ -77,7 +78,7 @@ impl MacOSWindow {
     }
 
     /// Checks if the window is currently active.
-    pub fn is_active(&self) -> Result<bool, OSError> {
+    pub fn is_active(&self) -> Result<bool, PlatformError> {
         Ok(self.0.attribute(&AXAttribute::main())?.into())
     }
 
@@ -89,7 +90,7 @@ impl MacOSWindow {
     ///
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
     #[cfg(feature = "macos-id")]
-    pub fn id(&self) -> Result<u32, OSError> {
+    pub fn id(&self) -> Result<u32, PlatformError> {
         use std::mem::MaybeUninit;
 
         use accessibility_sys::{AXError, AXUIElementRef};
@@ -106,7 +107,7 @@ impl MacOSWindow {
 
             _AXUIElementGetWindow(self.0.to_void() as _, out.as_mut_ptr())
                 .into_result(out.assume_init())
-                .map_err(OSError::Ax)
+                .map_err(PlatformError::Ax)
         }
     }
 }

@@ -8,5 +8,5 @@ pub mod event_loop;
 pub mod window;
 pub mod window_observer;
 
-pub use error::OSError;
+pub use error::PlatformError;
 pub use window_observer::MacOSWindowObserver;

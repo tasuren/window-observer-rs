@@ -4,7 +4,7 @@ use wineventhook::{raw_event, WindowEventHook};
 
 use crate::{EventFilter, EventTx};
 
-use super::OSError;
+use super::PlatformError;
 
 async fn handle_events(
     mut rx: UnboundedReceiver<wineventhook::WindowEvent>,
@@ -22,7 +22,7 @@ async fn handle_events(
             }
 
             let hwnd = Foundation::HWND(hwnd.as_ptr() as _);
-            let window = crate::Window(super::window::WindowsWindow::new(hwnd));
+            let window = crate::Window(super::window::PlatformWindow::new(hwnd));
 
             if event_tx.send((window, event)).is_err() {
                 break;
@@ -35,7 +35,7 @@ pub async fn make_wineventhook_task(
     pid: i32,
     event_tx: EventTx,
     event_filter: EventFilter,
-) -> Result<WindowEventHook, OSError> {
+) -> Result<WindowEventHook, PlatformError> {
     let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
     let hook = WindowEventHook::hook(
         wineventhook::EventFilter::default()

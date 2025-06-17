@@ -1,7 +1,7 @@
 use binding::get_window_text;
 use windows::Win32::{Foundation, UI::WindowsAndMessaging};
 
-use super::OSError;
+use super::PlatformError;
 use crate::window;
 
 mod binding {
@@ -32,12 +32,12 @@ mod binding {
 }
 
 /// Represents a window on the Windows platform.
-pub struct WindowsWindow(Foundation::HWND);
-unsafe impl Send for WindowsWindow {}
-unsafe impl Sync for WindowsWindow {}
+pub struct PlatformWindow(Foundation::HWND);
+unsafe impl Send for PlatformWindow {}
+unsafe impl Sync for PlatformWindow {}
 
-impl WindowsWindow {
-    /// Creates a new `WindowsWindow` from a window handle.
+impl PlatformWindow {
+    /// Creates a new `PlatformWindow` from a window handle.
     pub fn new(hwnd: Foundation::HWND) -> Self {
         Self(hwnd)
     }
@@ -48,17 +48,17 @@ impl WindowsWindow {
     }
 
     /// Retrieves the title of the window.
-    pub fn get_title(&self) -> Result<String, OSError> {
+    pub fn get_title(&self) -> Result<String, PlatformError> {
         Ok(get_window_text(self.0)?)
     }
 
     /// Retrieves the rectangle of the window.
-    pub fn get_rect(&self) -> Result<Foundation::RECT, OSError> {
+    pub fn get_rect(&self) -> Result<Foundation::RECT, PlatformError> {
         Ok(binding::get_window_rect(self.0)?)
     }
 
     /// Retrieves the size of the window.
-    pub fn get_size(&self) -> Result<window::Size, OSError> {
+    pub fn get_size(&self) -> Result<window::Size, PlatformError> {
         let rect = self.get_rect()?;
 
         Ok(window::Size {
@@ -68,7 +68,7 @@ impl WindowsWindow {
     }
 
     /// Retrieves the position of the window.
-    pub fn get_position(&self) -> Result<window::Position, OSError> {
+    pub fn get_position(&self) -> Result<window::Position, PlatformError> {
         let rect = self.get_rect()?;
 
         Ok(window::Position {
@@ -78,7 +78,7 @@ impl WindowsWindow {
     }
 
     /// Checks if the window is currently active.
-    pub fn is_active(&self) -> Result<bool, OSError> {
+    pub fn is_active(&self) -> Result<bool, PlatformError> {
         Ok(self.0 == unsafe { WindowsAndMessaging::GetForegroundWindow() })
     }
 }

@@ -6,6 +6,6 @@ pub mod observer;
 mod task;
 pub mod window;
 
-pub use error::OSError;
-pub use observer::WindowsWindowObserver;
-pub use window::WindowsWindow;
+pub use error::PlatformError;
+pub use observer::PlatformWindowObserver;
+pub use window::PlatformWindow;

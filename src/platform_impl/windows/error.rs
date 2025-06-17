@@ -1,6 +1,6 @@
 /// Represents errors that can occur in the Windows-specific implementation.
 #[derive(Debug, thiserror::Error)]
-pub enum OSError {
+pub enum PlatformError {
     /// An IO error occurred.
     #[error("IO error: {0}")]
     IOError(#[from] std::io::Error),

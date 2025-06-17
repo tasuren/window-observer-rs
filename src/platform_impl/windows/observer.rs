@@ -5,11 +5,11 @@ use crate::{Error, EventTx};
 use super::task::make_wineventhook_task;
 
 /// Observes window events on the Windows platform.
-pub struct WindowsWindowObserver {
+pub struct PlatformWindowObserver {
     hook: WindowEventHook,
 }
 
-impl WindowsWindowObserver {
+impl PlatformWindowObserver {
     /// Starts observing window events for a specific process ID.
     ///
     /// # Parameters
@@ -28,7 +28,10 @@ impl WindowsWindowObserver {
 
     /// Stops observing window events.
     pub async fn stop(self) -> Result<(), Error> {
-        self.hook.unhook().await.map_err(super::OSError::from)?;
+        self.hook
+            .unhook()
+            .await
+            .map_err(super::PlatformError::from)?;
 
         Ok(())
     }

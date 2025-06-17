@@ -11,12 +11,12 @@ use crate::{Error, Event, EventFilter, EventTx};
 
 /// Observes macOS window events and provides an interface to manage them.
 /// This is wrapper of `AXObserver`.
-pub struct MacOSWindowObserver {
+pub struct PlatformWindowObserver {
     source: ObserverSource,
     stopped: bool,
 }
 
-impl MacOSWindowObserver {
+impl PlatformWindowObserver {
     /// Creates a new `MacOSWindowObserver` for a given process ID and event channel.
     pub async fn start(
         pid: i32,
