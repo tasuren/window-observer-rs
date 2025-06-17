@@ -9,6 +9,7 @@ use crate::window::{Position, Size};
 
 /// Represents a macOS window and provides methods to interact with it.
 pub struct MacOSWindow(AXUIElement);
+
 unsafe impl Send for MacOSWindow {}
 unsafe impl Sync for MacOSWindow {}
 
@@ -78,5 +79,34 @@ impl MacOSWindow {
     /// Checks if the window is currently active.
     pub fn is_active(&self) -> Result<bool, OSError> {
         Ok(self.0.attribute(&AXAttribute::main())?.into())
+    }
+
+    /// Retrieves the id of the window. The value is `CGWindowID` on macOS.
+    ///
+    /// # Warning
+    /// This function will call private API `_AXUIElementGetWindow` of macOS.
+    /// This is because the [`AXUIElement`][element] does not provide a public method to get the window id.
+    ///
+    /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
+    #[cfg(feature = "macos-id")]
+    pub fn get_id(&self) -> Result<u32, OSError> {
+        use std::mem::MaybeUninit;
+
+        use accessibility_sys::{AXError, AXUIElementRef};
+        use core_foundation::base::ToVoid;
+
+        use crate::platform_impl::macos::error::AXErrorIntoResult;
+
+        extern "C" {
+            fn _AXUIElementGetWindow(element: AXUIElementRef, out: *mut u32) -> AXError;
+        }
+
+        unsafe {
+            let mut out = MaybeUninit::uninit();
+
+            _AXUIElementGetWindow(self.0.to_void() as _, out.as_mut_ptr())
+                .into_result(out.assume_init())
+                .map_err(OSError::Ax)
+        }
     }
 }
