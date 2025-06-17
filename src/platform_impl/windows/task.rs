@@ -22,7 +22,8 @@ async fn handle_events(
             }
 
             let hwnd = Foundation::HWND(hwnd.as_ptr() as _);
-            let window = crate::Window(super::window::PlatformWindow::new(hwnd));
+            // SAFETY: `hwnd` is a valid window handle.
+            let window = crate::Window(unsafe { super::PlatformWindow::new(hwnd) });
 
             if event_tx.send((window, event)).is_err() {
                 break;

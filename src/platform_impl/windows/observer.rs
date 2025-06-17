@@ -35,4 +35,9 @@ impl PlatformWindowObserver {
 
         Ok(())
     }
+
+    /// Retrieves the underlying [`WindowEventHook`].
+    pub fn hook(&self) -> &WindowEventHook {
+        &self.hook
+    }
 }

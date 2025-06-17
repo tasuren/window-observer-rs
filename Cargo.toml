@@ -8,12 +8,12 @@ default = []
 macos-id = []
 
 [dependencies]
-smallvec = "1.15.0"
+smallvec = "1.15.1"
 thiserror = "1.0.69"
-tokio = { version = "1.45.0", default-features = false, features = ["sync"] }
+tokio = { version = "1.45.1", default-features = false, features = ["sync"] }
 
 [target.'cfg(target_os = "windows")'.dependencies.windows]
-version = "0.58.0"
+version = "0.61.3"
 features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",
@@ -21,7 +21,7 @@ features = [
 ]
 
 [target.'cfg(target_os = "windows")'.dependencies]
-wineventhook = "0.9.0"
+wineventhook = "0.9.1"
 window-getter = { git = "https://github.com/tasuren/window-getter-rs.git" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -37,4 +37,4 @@ objc2-core-foundation = { version = "0.3.1", default-features = false, features 
 ] }
 
 [dev-dependencies]
-tokio = { version = "1.45.0", features = ["rt", "macros", "rt-multi-thread"] }
+tokio = { version = "1.45.1", features = ["rt", "macros", "rt-multi-thread"] }

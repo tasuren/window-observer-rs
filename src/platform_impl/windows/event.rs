@@ -1,9 +1,11 @@
-use wineventhook::{MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEventType};
+use wineventhook::{
+    MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEvent, WindowEventType,
+};
 
 use crate::Event;
 
-/// Converts a `wineventhook::WindowEvent` into a library-specific `Event`.
-pub fn make_event(event: wineventhook::WindowEvent) -> Option<Event> {
+/// Converts a [`WindowEvent`] into a library-specific [`Event`].
+pub fn make_event(event: WindowEvent) -> Option<Event> {
     if let WindowEventType::System(MaybeKnown::Known(event)) = event.event_type() {
         return Some(match event {
             SystemWindowEvent::MoveSizeEnd => Event::Resized,

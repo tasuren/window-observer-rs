@@ -4,8 +4,8 @@ pub mod error;
 pub mod event;
 pub mod observer;
 mod task;
-pub mod window;
 
 pub use error::PlatformError;
 pub use observer::PlatformWindowObserver;
-pub use window::PlatformWindow;
+
+pub use window_getter::platform_impl::PlatformWindow;

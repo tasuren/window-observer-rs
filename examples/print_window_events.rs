@@ -2,18 +2,9 @@ use window_observer::{self, Event, WindowObserver};
 
 fn print_event(window: window_observer::Window, event: Event) {
     println!(
-        "\nThe window event is fired: {} ({})",
-        window.get_title().unwrap(),
-        {
-            #[cfg(target_os = "macos")]
-            {
-                window.platform_impl().get_id().unwrap()
-            }
-            #[cfg(target_os = "windows")]
-            {
-                window.platform_impl().hwnd().0 as u32
-            }
-        }
+        "\nThe window event is fired: {:?} ({})",
+        window.title().unwrap(),
+        window.id().unwrap().as_u32()
     );
 
     match event {

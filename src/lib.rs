@@ -1,7 +1,9 @@
 pub mod platform_impl;
 pub mod window;
 
+use crate::platform_impl::PlatformWindowObserver;
 pub use window::Window;
+
 pub use ::{smallvec, smallvec::smallvec};
 
 /// Represents errors that can occur in the library.
@@ -32,9 +34,7 @@ pub type EventTx = tokio::sync::mpsc::UnboundedSender<(Window, Event)>;
 pub type EventFilter = smallvec::SmallVec<[Event; 3]>;
 
 /// Observes window events.
-pub struct WindowObserver {
-    sys: platform_impl::WindowObserver,
-}
+pub struct WindowObserver(PlatformWindowObserver);
 
 impl WindowObserver {
     /// Creates a new `WindowObserver` for a given process ID and event channel
@@ -44,18 +44,23 @@ impl WindowObserver {
         event_tx: EventTx,
         event_filter: EventFilter,
     ) -> Result<Self, Error> {
-        Ok(Self {
-            sys: platform_impl::WindowObserver::start(pid, event_tx, event_filter).await?,
-        })
+        Ok(Self(
+            PlatformWindowObserver::start(pid, event_tx, event_filter).await?,
+        ))
     }
 
     /// Stops the observer and cleans up resources.
     pub async fn stop(self) -> Result<(), Error> {
         #[cfg(target_os = "macos")]
-        self.sys.stop().await;
+        self.0.stop().await;
         #[cfg(target_os = "windows")]
-        self.sys.stop().await?;
+        self.0.stop().await?;
 
         Ok(())
+    }
+
+    /// Returns underlying platform-specific observer.
+    pub fn inner(&self) -> &PlatformWindowObserver {
+        &self.0
     }
 }
