@@ -82,12 +82,13 @@ impl PlatformWindow {
         Ok(self.0.attribute(&AXAttribute::main())?.into())
     }
 
-    /// Retrieves the id of the window. The value is `CGWindowID` on macOS.
+    /// Retrieves the id of the window. The value is [`CGWindowID`][window_id] on macOS.
     ///
     /// # Warning
     /// This function will call private API `_AXUIElementGetWindow` of macOS.
     /// This is because the [`AXUIElement`][element] does not provide a public method to get the window id.
     ///
+    /// [window_id]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
     #[cfg(feature = "macos-id")]
     pub fn id(&self) -> Result<u32, PlatformError> {

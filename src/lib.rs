@@ -37,7 +37,7 @@ pub type EventFilter = smallvec::SmallVec<[Event; 3]>;
 pub struct WindowObserver(PlatformWindowObserver);
 
 impl WindowObserver {
-    /// Creates a new `WindowObserver` for a given process ID and event channel
+    /// Creates a new [`WindowObserver`] for a given process ID and event channel
     /// and start the observer.
     pub async fn start(
         pid: i32,

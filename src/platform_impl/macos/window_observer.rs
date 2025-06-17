@@ -10,14 +10,14 @@ use super::{
 use crate::{Error, Event, EventFilter, EventTx};
 
 /// Observes macOS window events and provides an interface to manage them.
-/// This is wrapper of `AXObserver`.
+/// This is wrapper of [`AXObserver`](super::ax_observer::AXObserver).
 pub struct PlatformWindowObserver {
     source: ObserverSource,
     stopped: bool,
 }
 
 impl PlatformWindowObserver {
-    /// Creates a new `PlatformWindowObserver` for a given process ID and event channel.
+    /// Creates a new [`PlatformWindowObserver`] for a given process ID and event channel.
     pub async fn start(
         pid: i32,
         event_tx: EventTx,

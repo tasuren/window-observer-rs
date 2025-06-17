@@ -1,15 +1,15 @@
 pub use accessibility::Error as PlatformError;
 use accessibility_sys::AXError;
 
-/// A trait to convert `AXError` into a `Result` type.
+/// A trait to convert [`AXError`] into a [`Result`] type.
 pub trait AXErrorIntoResult {
-    /// Converts the `AXError` into a `Result`.
+    /// Converts the [`AXError`] into a [`Result`].
     ///
     /// # Parameters
     /// - `ok`: The value to return if the error indicates success.
     ///
     /// # Returns
-    /// A `Result` containing the value or the `AXError`.
+    /// A [`Result`] containing the value or the [`AXError`].
     fn into_result<T>(self, ok: T) -> Result<T, AXError>;
 }
 

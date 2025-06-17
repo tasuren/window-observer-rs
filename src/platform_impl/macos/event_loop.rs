@@ -5,7 +5,7 @@ use tokio::sync::OnceCell;
 
 use super::ax_observer::AXObserver;
 
-/// The wrapper of `CFRunLoop` for `AXObserver`.
+/// The wrapper of [`CFRunLoop`] for [`AXObserver`].
 pub(crate) struct EventLoop {
     run_loop: CFRetained<CFRunLoop>,
     handle: JoinHandle<()>,
@@ -66,10 +66,10 @@ pub(crate) fn get_event_loop<'a>() -> Option<&'a EventLoop> {
     EVENT_LOOP.get()
 }
 
-/// A wrapper for `CFRunLoopSource` and `AXObserver`.
-/// This struct keeps `AXObserver` alive for preventing it from destroyed.
-/// And it can be sended to other threads safely because `AXObserver` can't be touched.
-/// Also, it provides a method to get the `CFRunLoopSource` of `AXObserver`.
+/// A wrapper for [`CFRunLoopSource`] and [`AXObserver`].
+/// This struct keeps [`AXObserver`] alive for preventing it from destroyed.
+/// And it can be sended to other threads safely because [`AXObserver`] can't be touched.
+/// Also, it provides a method to get the `CFRunLoopSource` of [`AXObserver`].
 pub struct ObserverSource {
     source: CFRetained<CFRunLoopSource>,
     _observer: AXObserver, // This field is never touched.

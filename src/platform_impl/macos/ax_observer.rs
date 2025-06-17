@@ -28,7 +28,7 @@ extern "C" fn observer_callback(
 }
 
 /// Represents an `AXObserver`, which observes accessibility notifications.
-/// This is a wrapper around the `AXObserver`.
+/// This is a wrapper around the [`AXObserverRef`].
 pub struct AXObserver {
     raw: AXObserverRef,
     refcon: Box<Mutex<RefCon>>,
@@ -50,12 +50,12 @@ impl AXObserver {
         }
     }
 
-    /// Retrieves the `AXObserverRef` being used by this.
+    /// Retrieves the [`AXObserverRef`] being used by this.
     pub fn raw(&self) -> AXObserverRef {
         self.raw
     }
 
-    /// Adds a notification to be observed for a specific `AXUIElement`.
+    /// Adds a notification to be observed for a specific [`AXUIElement`].
     pub fn add_notification(
         &self,
         element: &AXUIElement,
@@ -74,7 +74,7 @@ impl AXObserver {
         .into_result(())
     }
 
-    /// Removes a notification from being observed for a specific `AXUIElement`.
+    /// Removes a notification from being observed for a specific [`AXUIElement`].
     pub fn remove_notification(
         &self,
         element: &AXUIElement,
@@ -92,7 +92,7 @@ impl AXObserver {
         .into_result(())
     }
 
-    /// Retrieves the `CFRunLoopSource` associated with the `AXObserver`.
+    /// Retrieves the [`CFRunLoopSource`] associated with the `AXObserver`.
     pub fn get_run_loop_source(&self) -> CFRetained<CFRunLoopSource> {
         unsafe {
             let ptr = accessibility_sys::AXObserverGetRunLoopSource(self.raw);
@@ -104,7 +104,7 @@ impl AXObserver {
 }
 
 impl Drop for AXObserver {
-    /// Releases the `AXObserver` when it is dropped.
+    /// Releases the [`AXObserverRef`] when it is dropped.
     fn drop(&mut self) {
         unsafe {
             core_foundation::base::CFRelease(self.raw as _);
