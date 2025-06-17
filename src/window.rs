@@ -1,4 +1,6 @@
-use window_getter::{Bounds, WindowId};
+use window_getter::Bounds;
+
+pub use window_getter;
 
 use crate::{platform_impl::PlatformWindow, Error};
 
@@ -54,7 +56,7 @@ impl Window {
     pub fn title(&self) -> Result<Option<String>, Error> {
         #[cfg(target_os = "macos")]
         {
-            Ok(self.0.title()?)
+            Ok(Some(self.0.title()?))
         }
         #[cfg(target_os = "windows")]
         {
@@ -117,14 +119,14 @@ impl Window {
     ///   **Warning:** It uses the private API `_AXUIElementGetWindow` of macOS.
     /// - **windows:** It will always return [`Ok`].
     #[cfg(feature = "macos-id")]
-    pub fn id(&self) -> Result<WindowId, Error> {
+    pub fn id(&self) -> Result<window_getter::WindowId, Error> {
         #[cfg(target_os = "macos")]
         {
-            Ok(WindowId::new(self.0.id()?))
+            Ok(window_getter::WindowId::new(self.0.id()?))
         }
         #[cfg(target_os = "windows")]
         {
-            Ok(WindowId::new(self.0.hwnd()))
+            Ok(window_getter::WindowId::new(self.0.hwnd()))
         }
     }
 }

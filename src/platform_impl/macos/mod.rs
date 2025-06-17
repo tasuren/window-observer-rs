@@ -9,4 +9,4 @@ pub mod window;
 pub mod window_observer;
 
 pub use error::PlatformError;
-pub use window_observer::MacOSWindowObserver;
+pub use window_observer::PlatformWindowObserver;

@@ -5,7 +5,7 @@ use super::{
     ax_observer::AXObserver,
     event::EventMacOSExt,
     event_loop::{event_loop, get_event_loop, ObserverSource},
-    window::MacOSWindow,
+    window::PlatformWindow,
 };
 use crate::{Error, Event, EventFilter, EventTx};
 
@@ -17,7 +17,7 @@ pub struct PlatformWindowObserver {
 }
 
 impl PlatformWindowObserver {
-    /// Creates a new `MacOSWindowObserver` for a given process ID and event channel.
+    /// Creates a new `PlatformWindowObserver` for a given process ID and event channel.
     pub async fn start(
         pid: i32,
         event_tx: EventTx,
@@ -61,7 +61,7 @@ impl PlatformWindowObserver {
     }
 }
 
-impl Drop for MacOSWindowObserver {
+impl Drop for PlatformWindowObserver {
     fn drop(&mut self) {
         if !self.stopped {
             // Unregister the observer in case the `stop` method was not called.
@@ -81,7 +81,7 @@ fn observer_callback(ax_ui_element: AXUIElement, event_tx: EventTx, notification
     let window_element = ax_ui_element
         .attribute(&AXAttribute::focused_window())
         .unwrap();
-    let window = MacOSWindow::new(window_element);
+    let window = PlatformWindow::new(window_element);
 
     event_tx.send((crate::Window(window), event)).unwrap();
 }
