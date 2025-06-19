@@ -99,6 +99,9 @@ impl Window {
     }
 
     /// Checks if the window is currently active.
+    /// 
+    /// # Platform-specific
+    /// - **windows:** It will always return [`Ok`].
     pub fn is_active(&self) -> Result<bool, Error> {
         #[cfg(target_os = "macos")]
         {
