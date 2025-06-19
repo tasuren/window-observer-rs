@@ -137,10 +137,16 @@ impl TryFrom<Window> for Option<window_getter::Window> {
     ///
     /// # Platform-specific
     /// - **windows:** It will always return [`Some`] when it is ok.
-    fn try_from(value: Window) -> Result<Self, Self::Error> {
+    fn try_from(window: Window) -> Result<Self, Self::Error> {
         #[cfg(target_os = "macos")]
         {
-            Ok(window_getter::get_window(value.id()?).expect("No window environment found"))
+            Ok(window_getter::get_window(window.id()?).expect("No window environment found"))
+        }
+        #[cfg(target_os = "windows")]
+        {
+            let window =
+                unsafe { window_getter::platform_impl::PlatformWindow::new(window.inner().hwnd()) };
+            Ok(Some(window_getter::Window::new(window)))
         }
     }
 }
