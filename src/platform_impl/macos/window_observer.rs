@@ -10,7 +10,7 @@ use super::{
 use crate::{Error, Event, EventFilter, EventTx};
 
 /// Observes macOS window events and provides an interface to manage them.
-/// This is wrapper of [`AXObserver`](super::ax_observer::AXObserver).
+/// This is wrapper of [`AXObserver`].
 pub struct PlatformWindowObserver {
     source: ObserverSource,
     stopped: bool,

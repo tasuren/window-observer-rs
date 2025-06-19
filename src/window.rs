@@ -50,7 +50,7 @@ impl Window {
     /// Retrieves the title of the window.
     ///
     /// # Platform-specific
-    /// - **macOS**: It will always return [`Some`] when it is ok.
+    /// - **macOS:** It will always return [`Some`] when it is ok.
     pub fn title(&self) -> Result<Option<String>, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -113,7 +113,7 @@ impl Window {
     /// Retrieves the unique identifier of the window.
     ///
     /// # Platform-specific
-    /// - **macOS:** It will return a `CGWindowID` which is a unique identifier for the window.  
+    /// - **macOS:** It will return a `CGWindowID` which is a unique identifier for the window.
     ///   **Warning:** It uses the private API `_AXUIElementGetWindow` of macOS.
     /// - **windows:** It will always return [`Ok`].
     #[cfg(feature = "macos-id")]
@@ -125,6 +125,22 @@ impl Window {
         #[cfg(target_os = "windows")]
         {
             Ok(window_getter::WindowId::new(self.0.hwnd()))
+        }
+    }
+}
+
+#[cfg(feature = "macos-id")]
+impl TryFrom<Window> for Option<window_getter::Window> {
+    type Error = Error;
+
+    /// Attempts to convert a [`Window`] into an [window_getter::Window] of another crate.
+    ///
+    /// # Platform-specific
+    /// - **windows:** It will always return [`Some`] when it is ok.
+    fn try_from(value: Window) -> Result<Self, Self::Error> {
+        #[cfg(target_os = "macos")]
+        {
+            Ok(window_getter::get_window(value.id()?).expect("No window environment found"))
         }
     }
 }

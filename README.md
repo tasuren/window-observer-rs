@@ -51,4 +51,4 @@ First release todos:
 - Windows event handler: [wineventhook-rs](https://github.com/OpenByteDev/wineventhook-rs/)
 
 ## License
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](./LICENSE).
