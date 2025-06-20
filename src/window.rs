@@ -99,7 +99,7 @@ impl Window {
     }
 
     /// Checks if the window is currently active.
-    /// 
+    ///
     /// # Platform-specific
     /// - **windows:** It will always return [`Ok`].
     pub fn is_active(&self) -> Result<bool, Error> {
@@ -139,7 +139,7 @@ impl TryFrom<Window> for Option<window_getter::Window> {
     /// Attempts to convert a [`Window`] into an [window_getter::Window] of another crate.
     ///
     /// # Platform-specific
-    /// - **windows:** It will always return [`Some`] when it is ok.
+    /// - **windows:** It will always return [`Some`] wrapped with [`Ok`].
     fn try_from(window: Window) -> Result<Self, Self::Error> {
         #[cfg(target_os = "macos")]
         {
