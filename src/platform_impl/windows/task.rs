@@ -33,7 +33,7 @@ async fn handle_events(
 }
 
 pub async fn make_wineventhook_task(
-    pid: i32,
+    pid: u32,
     event_tx: EventTx,
     event_filter: EventFilter,
 ) -> Result<WindowEventHook, PlatformError> {
@@ -41,7 +41,7 @@ pub async fn make_wineventhook_task(
     let hook = WindowEventHook::hook(
         wineventhook::EventFilter::default()
             .events(raw_event::SYSTEM_START..raw_event::OBJECT_LOCATIONCHANGE)
-            .process(std::num::NonZero::new(pid as _).unwrap()),
+            .process(std::num::NonZero::new(pid).expect("PID must be non-zero")),
         tx,
     )
     .await?;

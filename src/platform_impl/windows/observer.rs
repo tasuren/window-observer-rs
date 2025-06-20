@@ -11,16 +11,15 @@ pub struct PlatformWindowObserver {
 
 impl PlatformWindowObserver {
     /// Starts observing window events for a specific process ID.
-    ///
-    /// # Parameters
-    /// - `pid`: The process ID to observe.
-    /// - `event_tx`: The channel to send observed events.
-    /// - `event_filter`: The filter to apply to observed events.
     pub async fn start(
-        pid: i32,
+        pid: u32,
         event_tx: EventTx,
         event_filter: crate::EventFilter,
     ) -> Result<Self, Error> {
+        if pid == 0 {
+            return Err(Error::InvalidProcessID(pid));
+        }
+
         let hook = make_wineventhook_task(pid, event_tx, event_filter).await?;
 
         Ok(Self { hook })

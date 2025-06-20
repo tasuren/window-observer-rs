@@ -1,7 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-use std::num::{NonZeroI32, NonZeroU32};
-
 pub use window_getter;
 
 pub mod platform_impl;
@@ -16,7 +14,12 @@ pub use ::{smallvec, smallvec::smallvec};
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// The process ID is invalid.
-    /// This is occurred when the process ID the process does not exist.
+    /// This occurs when the process ID the process does not exist.
+    /// This will occur when the process ID is not a positive integer.
+    ///
+    /// # Platform-specific
+    /// - **windows:** This occurs when the process ID is zero.
+    ///   However, it does not occur when the process does not exist.
     #[error("The process ID is invalid: {0}")]
     InvalidProcessID(u32),
     /// Permission denied error. This error only occurs on macOS.
