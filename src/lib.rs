@@ -66,6 +66,9 @@ impl WindowObserver {
     }
 
     /// Stops the observer and cleans up resources.
+    ///
+    /// # Notes
+    /// If you don't call this method, the observer will continue to run until droped.
     pub async fn stop(self) -> Result<(), Error> {
         #[cfg(target_os = "macos")]
         self.0.stop().await;
