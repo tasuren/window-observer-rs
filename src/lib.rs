@@ -1,5 +1,7 @@
 #![doc = include_str!("../README.md")]
 
+use std::num::{NonZeroI32, NonZeroU32};
+
 pub use window_getter;
 
 pub mod platform_impl;
@@ -13,6 +15,10 @@ pub use ::{smallvec, smallvec::smallvec};
 /// Represents errors that can occur in the library.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// The process ID is invalid.
+    /// This is occurred when the process ID the process does not exist.
+    #[error("The process ID is invalid: {0}")]
+    InvalidProcessID(u32),
     /// Permission denied error. This error only occurs on macOS.
     #[error("Permission denied.")]
     PermissionDenied,
@@ -44,10 +50,13 @@ impl WindowObserver {
     /// Creates a new [`WindowObserver`] for a given process ID and event channel
     /// and start the observer.
     pub async fn start(
-        pid: i32,
+        pid: u32,
         event_tx: EventTx,
         event_filter: EventFilter,
     ) -> Result<Self, Error> {
+        #[cfg(target_os = "macos")]
+        let pid = pid as i32;
+
         Ok(Self(
             PlatformWindowObserver::start(pid, event_tx, event_filter).await?,
         ))

@@ -37,9 +37,14 @@ impl PlatformWindowObserver {
 
         // Add the event filter to the observer.
         for event in event_filter {
-            observer
-                .add_notification(&AXUIElement::application(pid), event.ax_notification())
-                .expect("Failed to add notification to `AXObserver`");
+            if let Err(ax_error) =
+                observer.add_notification(&AXUIElement::application(pid), event.ax_notification())
+            {
+                if ax_error == accessibility_sys::kAXErrorCannotComplete {
+                    // This error is occurred when the process id is not valid.
+                    return Err(Error::InvalidProcessID(pid as _));
+                }
+            };
         }
 
         // Wrap the observer in struct for preventing it from being dropped.
