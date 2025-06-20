@@ -6,9 +6,9 @@ pub mod platform_impl;
 pub mod window;
 
 use crate::platform_impl::PlatformWindowObserver;
-pub use window::Window;
 
-pub use ::{smallvec, smallvec::smallvec};
+pub use window::Window;
+pub use ::{smallvec, smallvec::smallvec, tokio};
 
 /// Represents errors that can occur in the library.
 #[derive(Debug, thiserror::Error)]
