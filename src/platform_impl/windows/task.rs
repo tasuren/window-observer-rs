@@ -1,19 +1,27 @@
 use tokio::sync::mpsc::UnboundedReceiver;
+use window_getter::platform_impl::get_window;
 use windows::Win32::Foundation;
 use wineventhook::{raw_event, WindowEventHook};
 
+use super::{event::EventManager, PlatformError};
 use crate::{EventFilter, EventTx};
 
-use super::PlatformError;
-
 async fn handle_events(
+    pid: u32,
     mut rx: UnboundedReceiver<wineventhook::WindowEvent>,
     event_tx: EventTx,
     event_filter: EventFilter,
 ) {
+    let mut event_manager = EventManager::new(pid);
+
     while let Some(event) = rx.recv().await {
         if let Some(hwnd) = event.window_handle() {
-            let Some(event) = super::event::make_event(event) else {
+            let hwnd = Foundation::HWND(hwnd.as_ptr() as _);
+            let Some(window) = get_window(hwnd).map(|w| w.into_inner()) else {
+                continue;
+            };
+
+            let Some((event, window)) = event_manager.convert_event(window, event) else {
                 continue;
             };
 
@@ -21,10 +29,7 @@ async fn handle_events(
                 continue;
             }
 
-            let hwnd = Foundation::HWND(hwnd.as_ptr() as _);
-            // SAFETY: `hwnd` is a valid window handle.
-            let window = crate::Window(unsafe { super::PlatformWindow::new(hwnd) });
-
+            let window = crate::Window(window);
             if event_tx.send((window, event)).is_err() {
                 break;
             };
@@ -40,14 +45,13 @@ pub async fn make_wineventhook_task(
     let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
     let hook = WindowEventHook::hook(
         wineventhook::EventFilter::default()
-            .events(raw_event::SYSTEM_START..raw_event::OBJECT_LOCATIONCHANGE)
-            .process(std::num::NonZero::new(pid).expect("PID must be non-zero")),
+            .events(raw_event::SYSTEM_START..raw_event::OBJECT_LOCATIONCHANGE),
         tx,
     )
     .await?;
 
     tokio::task::spawn(async move {
-        handle_events(rx, event_tx, event_filter).await;
+        handle_events(pid, rx, event_tx, event_filter).await;
     });
 
     Ok(hook)
