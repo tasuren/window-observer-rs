@@ -32,6 +32,7 @@ pub enum Error {
 
 /// Represents events that can be observed on a window.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Event {
     /// The window was resized.
     Resized,
