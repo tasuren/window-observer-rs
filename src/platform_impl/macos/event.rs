@@ -1,7 +1,3 @@
-use accessibility_sys::{
-    kAXApplicationActivatedNotification, kAXMovedNotification, kAXResizedNotification,
-};
-
 use crate::Event;
 
 /// An extension trait for the [`Event`] enum to handle macOS-specific notifications.
@@ -28,15 +24,17 @@ impl EventMacOSExt for Event {
             accessibility_sys::kAXApplicationActivatedNotification => Event::Activated,
             accessibility_sys::kAXMovedNotification => Event::Moved,
             accessibility_sys::kAXResizedNotification => Event::Resized,
+            accessibility_sys::kAXApplicationDeactivatedNotification => Event::Deactivated,
             _ => return None,
         })
     }
 
     fn ax_notification(&self) -> &'static str {
         match *self {
-            Event::Activated => kAXApplicationActivatedNotification,
-            Event::Moved => kAXMovedNotification,
-            Event::Resized => kAXResizedNotification,
+            Event::Activated => accessibility_sys::kAXApplicationActivatedNotification,
+            Event::Moved => accessibility_sys::kAXMovedNotification,
+            Event::Resized => accessibility_sys::kAXResizedNotification,
+            Event::Deactivated => accessibility_sys::kAXApplicationDeactivatedNotification,
         }
     }
 }
