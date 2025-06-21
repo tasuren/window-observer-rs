@@ -38,7 +38,11 @@ pub enum Event {
     /// The window was moved.
     Moved,
     /// The window was activated.
+    ///
+    /// # Platform-specific
+    /// - **windows:** This event is occurred when the window is foregrounded.
     Activated,
+    /// The window was deactivated. It is opposite of [`Event::Activated`].
     Deactivated,
 }
 
