@@ -1,7 +1,7 @@
 use window_observer::{self, Event, WindowObserver};
 
 fn print_event(window: window_observer::Window, event: Event) {
-    println!("\nThe window event is fired: {:?}", window.title().unwrap());
+    println!("\nThe window event is fired: {:?}", window.title());
 
     match event {
         Event::Activated => println!("Window is now main"),
