@@ -13,15 +13,16 @@ pub use ::{smallvec, smallvec::smallvec, tokio};
 /// Represents errors that can occur in the library.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    /// The process ID is invalid.
-    /// This occurs when the process ID the process does not exist.
-    /// This will occur when the process ID is not a positive integer.
+    /// The process ID is invalid for observing windows.
     ///
     /// # Platform-specific
     /// - **windows:** This occurs when the process ID is zero.
     ///   However, it does not occur when the process does not exist.
-    #[error("The process ID is invalid: {0}")]
-    InvalidProcessID(u32),
+    /// - **macOS:** This occurs when the application does not support
+    ///   accessibility features to observe window events.
+    ///   Or when it is not ready yet.
+    #[error("The process ID is invalid: {pid}")]
+    InvalidProcessToObserve { pid: u32 },
     /// Permission denied error. This error only occurs on macOS.
     #[error("Permission denied.")]
     PermissionDenied,

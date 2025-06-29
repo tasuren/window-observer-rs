@@ -37,17 +37,18 @@ pub struct AXObserver {
 impl AXObserver {
     /// Creates a new `AXObserver` for a given process ID and callback function.
     /// The `AXObserver` will call the callback function when a notification is received.
-    pub fn create(pid: pid_t, callback: Callback) -> Self {
+    pub fn create(pid: pid_t, callback: Callback) -> Result<Self, AXError> {
         let mut observer: AXObserverRef = std::ptr::null_mut();
 
         unsafe {
-            accessibility_sys::AXObserverCreate(pid, observer_callback, &mut observer);
+            accessibility_sys::AXObserverCreate(pid, observer_callback, &mut observer)
+                .into_result(())?;
         };
 
-        Self {
+        Ok(Self {
             raw: observer,
             refcon: Box::new(Mutex::new(RefCon { callback })),
-        }
+        })
     }
 
     /// Retrieves the [`AXObserverRef`] being used by this.

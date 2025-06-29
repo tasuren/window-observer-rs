@@ -33,7 +33,8 @@ impl PlatformWindowObserver {
             observer_callback(ax_ui_element, event_tx.clone(), notification);
         };
 
-        let observer = AXObserver::create(pid, Box::new(callback));
+        let observer =
+            AXObserver::create(pid, Box::new(callback)).map_err(accessibility::Error::Ax)?;
 
         // Add the event filter to the observer.
         for event in event_filter {
@@ -41,8 +42,11 @@ impl PlatformWindowObserver {
                 observer.add_notification(&AXUIElement::application(pid), event.ax_notification())
             {
                 if ax_error == accessibility_sys::kAXErrorCannotComplete {
-                    // This error is occurred when the process id is not valid.
-                    return Err(Error::InvalidProcessID(pid as _));
+                    return Err(Error::InvalidProcessToObserve { pid: pid as _ });
+                } else {
+                    return Err(Error::PlatformSpecificError(accessibility::Error::Ax(
+                        ax_error,
+                    )));
                 }
             };
         }
