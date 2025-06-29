@@ -33,14 +33,14 @@ impl EventManager {
 
             if let Some(before_foreground) = before_foreground {
                 if before_foreground.hwnd() != window.hwnd()
-                    && before_foreground.owner_pid().unwrap() == self.pid
+                    && before_foreground.owner_pid().ok()? == self.pid
                 {
                     return Some((Event::Deactivated, before_foreground));
                 }
             }
         }
 
-        if window.owner_pid().unwrap() != self.pid {
+        if window.owner_pid().ok()? != self.pid {
             return None;
         }
 

@@ -6,7 +6,7 @@ use wineventhook::{raw_event, WindowEventHook};
 use super::{event::EventManager, PlatformError};
 use crate::{EventFilter, EventTx};
 
-async fn handle_events(
+fn handle_events(
     pid: u32,
     mut rx: UnboundedReceiver<wineventhook::WindowEvent>,
     event_tx: EventTx,
@@ -14,7 +14,7 @@ async fn handle_events(
 ) {
     let mut event_manager = EventManager::new(pid);
 
-    while let Some(event) = rx.recv().await {
+    while let Some(event) = rx.blocking_recv() {
         if let Some(hwnd) = event.window_handle() {
             let hwnd = Foundation::HWND(hwnd.as_ptr() as _);
             let Some(window) = get_window(hwnd).map(|w| w.into_inner()) else {
@@ -50,9 +50,7 @@ pub async fn make_wineventhook_task(
     )
     .await?;
 
-    tokio::task::spawn(async move {
-        handle_events(pid, rx, event_tx, event_filter).await;
-    });
+    std::thread::spawn(move || handle_events(pid, rx, event_tx, event_filter));
 
     Ok(hook)
 }
