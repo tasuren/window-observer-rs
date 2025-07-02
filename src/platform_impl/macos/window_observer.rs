@@ -41,13 +41,11 @@ impl PlatformWindowObserver {
             if let Err(ax_error) =
                 observer.add_notification(&AXUIElement::application(pid), event.ax_notification())
             {
-                if ax_error == accessibility_sys::kAXErrorCannotComplete {
-                    return Err(Error::InvalidProcessToObserve { pid: pid as _ });
-                } else {
-                    return Err(Error::PlatformSpecificError(accessibility::Error::Ax(
-                        ax_error,
-                    )));
-                }
+                return Err(match ax_error {
+                    accessibility_sys::kAXErrorCannotComplete => Error::InvalidProcessId(pid as _),
+                    accessibility_sys::kAXErrorNotificationUnsupported => Error::NotSupported,
+                    ax_error => Error::PlatformSpecificError(accessibility::Error::Ax(ax_error)),
+                });
             };
         }
 

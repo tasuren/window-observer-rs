@@ -17,12 +17,22 @@ pub enum Error {
     ///
     /// # Platform-specific
     /// - **windows:** This occurs when the process ID is zero.
-    ///   However, it does not occur when the process does not exist.
-    /// - **macOS:** This occurs when the application does not support
-    ///   accessibility features to observe window events.
-    ///   Or when it is not ready yet.
-    #[error("The process ID is invalid: {pid}")]
-    InvalidProcessToObserve { pid: u32 },
+    /// - **macOS:** This does not occur on macOS.
+    #[error("The process ID is invalid: {0}")]
+    InvalidProcessId(u32),
+    /// This occurs when the application is not ready yet.
+    /// This also occurs when the application that has given PID is not found.
+    ///
+    /// # Platform-specific
+    /// - **windows:** This does not occur on windows.
+    #[error("Something went wrong")]
+    SomethingWentWrong,
+    /// The application does not support observing window events.
+    ///
+    /// # Platform-specific
+    /// - **windows:** This does not occur on windows.
+    #[error("The application does not support observing window")]
+    NotSupported,
     /// Permission denied error. This error only occurs on macOS.
     #[error("Permission denied.")]
     PermissionDenied,
