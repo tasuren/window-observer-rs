@@ -17,7 +17,7 @@ impl PlatformWindowObserver {
         event_filter: crate::EventFilter,
     ) -> Result<Self, Error> {
         if pid == 0 {
-            return Err(Error::InvalidProcessToObserve { pid });
+            return Err(Error::InvalidProcessId(pid));
         }
 
         let hook = make_wineventhook_task(pid, event_tx, event_filter).await?;
