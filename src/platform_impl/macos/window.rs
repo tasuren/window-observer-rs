@@ -9,6 +9,7 @@ use crate::window::{Position, Size};
 
 /// Represents a macOS window and provides methods to interact with it.
 /// This is the wrapper of [`AXUIElement`].
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlatformWindow(AXUIElement);
 
 unsafe impl Send for PlatformWindow {}

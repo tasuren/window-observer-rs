@@ -39,6 +39,7 @@ impl From<Bounds> for Position {
 }
 
 /// A wrapper around platform-specific window implementations.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Window(pub(crate) PlatformWindow);
 
 impl Window {
