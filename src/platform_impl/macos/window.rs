@@ -90,7 +90,7 @@ impl PlatformWindow {
     ///
     /// [window_id]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
-    #[cfg(feature = "macos-id")]
+    #[cfg(feature = "macos-private-apis")]
     pub fn id(&self) -> Result<u32, PlatformError> {
         use std::mem::MaybeUninit;
 
