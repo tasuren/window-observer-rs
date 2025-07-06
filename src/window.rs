@@ -119,7 +119,7 @@ impl Window {
     /// - **macOS:** It will return a `CGWindowID` which is a unique identifier for the window.
     ///   **Warning:** It uses the private API `_AXUIElementGetWindow` of macOS.
     /// - **windows:** It will always return [`Ok`].
-    #[cfg(feature = "macos-private-apis")]
+    #[cfg(feature = "macos-private-api")]
     pub fn id(&self) -> Result<window_getter::WindowId, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -134,7 +134,7 @@ impl Window {
     /// Retrieves the `Window` implementation by [window-getter-rs][window-getter-rs].
     ///
     /// [window-getter-rs]: https://github.com/tasuren/window-getter-rs
-    #[cfg(feature = "macos-private-apis")]
+    #[cfg(feature = "macos-private-api")]
     pub fn create_window_getter_window(&self) -> Result<Option<window_getter::Window>, Error> {
         #[cfg(target_os = "macos")]
         {
