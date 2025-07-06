@@ -74,7 +74,7 @@ impl Window {
         {
             Ok(window_getter::Bounds::new(
                 self.0
-                    .bounds()
+                    .visible_rect()
                     .map_err(|e| Error::PlatformSpecificError(e.into()))?,
             )
             .into())
@@ -91,7 +91,7 @@ impl Window {
         {
             Ok(window_getter::Bounds::new(
                 self.0
-                    .bounds()
+                    .visible_rect()
                     .map_err(|e| Error::PlatformSpecificError(e.into()))?,
             )
             .into())
@@ -130,25 +130,20 @@ impl Window {
             Ok(window_getter::WindowId::new(self.0.hwnd()))
         }
     }
-}
 
-#[cfg(feature = "macos-private-apis")]
-impl TryFrom<Window> for Option<window_getter::Window> {
-    type Error = Error;
-
-    /// Attempts to convert a [`Window`] into an [window_getter::Window] of another crate.
+    /// Retrieves the `Window` implementation by [window-getter-rs][window-getter-rs].
     ///
-    /// # Platform-specific
-    /// - **windows:** It will always return [`Some`] wrapped with [`Ok`].
-    fn try_from(window: Window) -> Result<Self, Self::Error> {
+    /// [window-getter-rs]: https://github.com/tasuren/window-getter-rs
+    #[cfg(feature = "macos-private-apis")]
+    pub fn create_window_getter_window(&self) -> Result<Option<window_getter::Window>, Error> {
         #[cfg(target_os = "macos")]
         {
-            Ok(window_getter::get_window(window.id()?).expect("No window environment found"))
+            Ok(window_getter::get_window(self.id()?).expect("No window environment found"))
         }
         #[cfg(target_os = "windows")]
         {
             let window =
-                unsafe { window_getter::platform_impl::PlatformWindow::new(window.inner().hwnd()) };
+                unsafe { window_getter::platform_impl::PlatformWindow::new(self.inner().hwnd()) };
             Ok(Some(window_getter::Window::new(window)))
         }
     }
