@@ -75,7 +75,7 @@ impl Window {
         {
             Ok(window_getter::Bounds::new(
                 self.0
-                    .visible_rect()
+                    .visible_bounds()
                     .map_err(|e| Error::PlatformSpecificError(e.into()))?,
             )
             .into())
@@ -92,7 +92,7 @@ impl Window {
         {
             Ok(window_getter::Bounds::new(
                 self.0
-                    .visible_rect()
+                    .visible_bounds()
                     .map_err(|e| Error::PlatformSpecificError(e.into()))?,
             )
             .into())
