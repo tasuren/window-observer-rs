@@ -34,7 +34,10 @@ impl From<CGPoint> for Position {
 
 impl PlatformWindow {
     /// Creates a new [`PlatformWindow`] instance from an [`AXUIElement`].
-    pub fn new(element: AXUIElement) -> Self {
+    ///
+    /// # Safety
+    /// The caller must ensure that the provided `AXUIElement` is represents a window element.
+    pub unsafe fn new_unchecked(element: AXUIElement) -> Self {
         Self(element)
     }
 

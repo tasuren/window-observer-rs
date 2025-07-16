@@ -2,12 +2,12 @@ use std::{ptr::NonNull, sync::Mutex};
 
 use accessibility::AXUIElement;
 use accessibility_sys::{pid_t, AXError, AXObserverRef};
-use core_foundation::base::TCFType;
+use core_foundation::base::{FromVoid, TCFType};
 use objc2_core_foundation::{CFRetained, CFRunLoopSource, CFString};
 
 use super::error::AXErrorIntoResult;
 
-type Callback = Box<dyn Fn(String)>;
+type Callback = Box<dyn Fn(AXUIElement, String)>;
 
 struct RefCon {
     callback: Callback,
@@ -15,15 +15,16 @@ struct RefCon {
 
 extern "C" fn observer_callback(
     _observer: AXObserverRef,
-    _element: accessibility_sys::AXUIElementRef,
+    element: accessibility_sys::AXUIElementRef,
     notification: core_foundation::string::CFStringRef,
     refcon: *mut std::ffi::c_void,
 ) {
     let notification = unsafe { &*(notification as *const CFString) };
     let refcon = unsafe { &*(refcon as *mut Mutex<RefCon>) };
+    let element = unsafe { AXUIElement::from_void(element as _) }.clone();
 
     if let Ok(refcon) = refcon.lock() {
-        (refcon.callback)(notification.to_string());
+        (refcon.callback)(element, notification.to_string());
     };
 }
 

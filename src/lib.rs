@@ -56,6 +56,8 @@ pub enum Event {
     Activated,
     /// The window was deactivated. It is opposite of [`Event::Activated`].
     Deactivated,
+    /// The window was closed.
+    Closed,
 }
 
 /// A type alias for the window event transmission channel.

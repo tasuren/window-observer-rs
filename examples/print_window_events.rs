@@ -8,6 +8,7 @@ fn print_event(window: window_observer::Window, event: Event) {
         Event::Moved => println!("Window current position: {:?}", window.position()),
         Event::Resized => println!("Window current size: {:?}", window.size()),
         Event::Deactivated => println!("Window is no longer main"),
+        Event::Closed => println!("Window is closed"),
         _ => {}
     };
 }
@@ -23,7 +24,8 @@ async fn main() {
         Event::Activated,
         Event::Moved,
         Event::Resized,
-        Event::Deactivated
+        Event::Deactivated,
+        Event::Closed
     ];
 
     let _window_observer = WindowObserver::start(pid, event_tx, event_filter)

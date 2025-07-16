@@ -25,6 +25,7 @@ impl EventMacOSExt for Event {
             accessibility_sys::kAXMovedNotification => Event::Moved,
             accessibility_sys::kAXResizedNotification => Event::Resized,
             accessibility_sys::kAXApplicationDeactivatedNotification => Event::Deactivated,
+            accessibility_sys::kAXUIElementDestroyedNotification => Event::Closed,
             _ => return None,
         })
     }
@@ -35,6 +36,7 @@ impl EventMacOSExt for Event {
             Event::Moved => accessibility_sys::kAXMovedNotification,
             Event::Resized => accessibility_sys::kAXResizedNotification,
             Event::Deactivated => accessibility_sys::kAXApplicationDeactivatedNotification,
+            Event::Closed => accessibility_sys::kAXUIElementDestroyedNotification,
         }
     }
 }

@@ -1,4 +1,5 @@
 use accessibility::{AXAttribute, AXUIElement};
+use accessibility_sys::pid_t;
 
 use super::{
     ax_function::ax_is_process_trusted,
@@ -28,9 +29,8 @@ impl PlatformWindowObserver {
         };
 
         // Instantiate `AXObserver`.
-        let callback = move |notification: String| {
-            let ax_ui_element = AXUIElement::application(pid);
-            observer_callback(ax_ui_element, event_tx.clone(), notification);
+        let callback = move |ax_ui_element: AXUIElement, notification: String| {
+            observer_callback(pid, ax_ui_element, event_tx.clone(), notification);
         };
 
         let observer =
@@ -80,15 +80,45 @@ impl Drop for PlatformWindowObserver {
     }
 }
 
-fn observer_callback(ax_ui_element: AXUIElement, event_tx: EventTx, notification: String) {
+fn observer_callback(
+    pid: pid_t,
+    ax_ui_element: AXUIElement,
+    event_tx: EventTx,
+    notification: String,
+) {
     let Some(event) = Event::from_ax_notification(&notification) else {
         return;
     };
 
-    let window_element = ax_ui_element
-        .attribute(&AXAttribute::focused_window())
-        .unwrap();
-    let window = PlatformWindow::new(window_element);
+    let window_element = match ax_ui_element.attribute(&AXAttribute::role()) {
+        Ok(role) if role == accessibility_sys::kAXWindowRole => ax_ui_element,
 
-    event_tx.send((crate::Window(window), event)).unwrap();
+        // When application is activated or deactivated, we need to get the focused window
+        // to dispatch the event `Event::Activated` or `Event::Deactivated`.
+        Ok(role)
+            if role == accessibility_sys::kAXApplicationActivatedNotification
+                || role == accessibility_sys::kAXApplicationDeactivatedNotification =>
+        {
+            match ax_ui_element.attribute(&AXAttribute::focused_window()) {
+                Ok(element) => element,
+                Err(accessibility::Error::Ax(accessibility_sys::kAXErrorNoValue)) => {
+                    // If the focused window is not available, the application might not have a window.
+                    return;
+                }
+                Err(e) => panic!("Failed to get focused window: {e:?}"),
+            }
+        }
+
+        Err(accessibility::Error::Ax(accessibility_sys::kAXErrorInvalidUIElement)) => {
+            // If the element is not a valid UI element, some window might be closed.
+            ax_ui_element
+        }
+
+        _ => return,
+    };
+
+    // SAFETY: The `window_element` is guaranteed to be a valid `AXUIElement` representing a window.
+    let window = unsafe { PlatformWindow::new_unchecked(window_element) };
+    let window = crate::Window(window);
+    event_tx.send((window, event)).unwrap();
 }
