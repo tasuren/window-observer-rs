@@ -9,6 +9,7 @@ use crate::window::{Position, Size};
 
 /// Represents a macOS window and provides methods to interact with it.
 /// This is the wrapper of [`AXUIElement`].
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlatformWindow(AXUIElement);
 
 unsafe impl Send for PlatformWindow {}
@@ -93,7 +94,7 @@ impl PlatformWindow {
     ///
     /// [window_id]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
-    #[cfg(feature = "macos-id")]
+    #[cfg(feature = "macos-private-api")]
     pub fn id(&self) -> Result<u32, PlatformError> {
         use std::mem::MaybeUninit;
 
