@@ -7,7 +7,7 @@ use objc2_core_foundation::{CFRetained, CFRunLoopSource, CFString};
 
 use super::error::AXErrorIntoResult;
 
-type Callback = Box<dyn Fn(AXUIElement, String)>;
+type Callback = Box<dyn FnMut(AXUIElement, String)>;
 
 struct RefCon {
     callback: Callback,
@@ -23,7 +23,7 @@ extern "C" fn observer_callback(
     let refcon = unsafe { &*(refcon as *mut Mutex<RefCon>) };
     let element = unsafe { AXUIElement::from_void(element as _) }.clone();
 
-    if let Ok(refcon) = refcon.lock() {
+    if let Ok(mut refcon) = refcon.lock() {
         (refcon.callback)(element, notification.to_string());
     };
 }

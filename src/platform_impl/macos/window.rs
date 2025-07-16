@@ -35,10 +35,7 @@ impl From<CGPoint> for Position {
 
 impl PlatformWindow {
     /// Creates a new [`PlatformWindow`] instance from an [`AXUIElement`].
-    ///
-    /// # Safety
-    /// The caller must ensure that the provided `AXUIElement` is represents a window element.
-    pub unsafe fn new_unchecked(element: AXUIElement) -> Self {
+    pub fn new(element: AXUIElement) -> Self {
         Self(element)
     }
 
@@ -82,8 +79,8 @@ impl PlatformWindow {
     }
 
     /// Checks if the window is currently active.
-    pub fn is_active(&self) -> Result<bool, PlatformError> {
-        Ok(self.0.attribute(&AXAttribute::main())?.into())
+    pub fn is_focused(&self) -> Result<bool, PlatformError> {
+        Ok(self.0.attribute(&AXAttribute::focused())?.into())
     }
 
     /// Retrieves the id of the window. The value is [`CGWindowID`][window_id] on macOS.
@@ -96,23 +93,6 @@ impl PlatformWindow {
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
     #[cfg(feature = "macos-private-api")]
     pub fn id(&self) -> Result<u32, PlatformError> {
-        use std::mem::MaybeUninit;
-
-        use accessibility_sys::{AXError, AXUIElementRef};
-        use core_foundation::base::ToVoid;
-
-        use crate::platform_impl::macos::error::AXErrorIntoResult;
-
-        extern "C" {
-            fn _AXUIElementGetWindow(element: AXUIElementRef, out: *mut u32) -> AXError;
-        }
-
-        unsafe {
-            let mut out = MaybeUninit::uninit();
-
-            _AXUIElementGetWindow(self.0.to_void() as _, out.as_mut_ptr())
-                .into_result(out.assume_init())
-                .map_err(PlatformError::Ax)
-        }
+        super::ax_function::ax_ui_element_get_window_id(&self.0)
     }
 }

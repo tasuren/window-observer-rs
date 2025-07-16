@@ -1,14 +1,19 @@
 use window_observer::{self, Event, WindowObserver};
 
-fn print_event(window: window_observer::Window, event: Event) {
-    println!("\nThe window event is fired: {:?}", window.title());
-
+fn print_event(event: Event) {
     match event {
-        Event::Activated => println!("Window is now main"),
-        Event::Moved => println!("Window current position: {:?}", window.position()),
-        Event::Resized => println!("Window current size: {:?}", window.size()),
-        Event::Deactivated => println!("Window is no longer main"),
-        Event::Closed => println!("Window is closed"),
+        Event::Foregrounded { window } => println!("Window {:?}: Foregrounded", window.title()),
+        Event::Focused { window } => println!("Window {:?}: Focused", window.title()),
+        Event::Moved { window } => {
+            println!("Window {:?}: Moved {:?}", window.title(), window.position())
+        }
+        Event::Resized { window } => {
+            println!("Window {:?}: Resized {:?}", window.title(), window.size())
+        }
+        Event::Backgrounded { window } => println!("Window {:?}: Backgrounded", window.title()),
+        Event::Unfocused { window } => println!("Window {:?}: Unfocused", window.title()),
+        Event::Created { window } => println!("Window {:?}: Created", window.title()),
+        Event::Closed { window_id } => println!("Window {window_id:?}: Closed"),
         _ => {}
     };
 }
@@ -20,19 +25,13 @@ async fn main() {
         .expect("Please give me the env `PID` of application that has window.");
 
     let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel();
-    let event_filter = window_observer::smallvec![
-        Event::Activated,
-        Event::Moved,
-        Event::Resized,
-        Event::Deactivated,
-        Event::Closed
-    ];
+    let event_filter = window_observer::EventFilter::all();
 
     let _window_observer = WindowObserver::start(pid, event_tx, event_filter)
         .await
         .unwrap();
 
-    while let Some((window, event)) = event_rx.recv().await {
-        print_event(window, event);
+    while let Some(event) = event_rx.recv().await {
+        print_event(event);
     }
 }

@@ -4,11 +4,15 @@ use accessibility_sys::pid_t;
 use super::{
     ax_function::ax_is_process_trusted,
     ax_observer::AXObserver,
-    event::EventMacOSExt,
     event_loop::{event_loop, get_event_loop, ObserverSource},
-    window::PlatformWindow,
 };
-use crate::{Error, Event, EventFilter, EventTx};
+use crate::{
+    platform_impl::macos::event::{
+        dispatch_event_with_application_activated_notification,
+        dispatch_event_with_window_related_notification, for_each_notification_event,
+    },
+    Error, Event, EventFilter, EventTx,
+};
 
 /// Observes macOS window events and provides an interface to manage them.
 /// This is wrapper of [`AXObserver`].
@@ -29,25 +33,36 @@ impl PlatformWindowObserver {
         };
 
         // Instantiate `AXObserver`.
+        let mut callback_state = ObserverCallbackState::default();
         let callback = move |ax_ui_element: AXUIElement, notification: String| {
-            observer_callback(pid, ax_ui_element, event_tx.clone(), notification);
+            observer_callback(
+                pid,
+                ax_ui_element,
+                event_tx.clone(),
+                event_filter,
+                notification,
+                &mut callback_state,
+            );
         };
 
         let observer =
             AXObserver::create(pid, Box::new(callback)).map_err(accessibility::Error::Ax)?;
 
         // Add the event filter to the observer.
-        for event in event_filter {
-            if let Err(ax_error) =
-                observer.add_notification(&AXUIElement::application(pid), event.ax_notification())
-            {
-                return Err(match ax_error {
+        let app_element = AXUIElement::application(pid);
+
+        for_each_notification_event(event_filter, |notification| {
+            if let Err(ax_error) = observer.add_notification(&app_element, notification) {
+                return Err::<_, Error>(match ax_error {
                     accessibility_sys::kAXErrorCannotComplete => Error::InvalidProcessId(pid as _),
                     accessibility_sys::kAXErrorNotificationUnsupported => Error::NotSupported,
+                    accessibility_sys::kAXErrorNotificationAlreadyRegistered => return Ok(()),
                     ax_error => Error::PlatformSpecificError(accessibility::Error::Ax(ax_error)),
                 });
             };
-        }
+
+            Ok(())
+        })?;
 
         // Wrap the observer in struct for preventing it from being dropped.
         let source = ObserverSource::new(observer);
@@ -80,45 +95,93 @@ impl Drop for PlatformWindowObserver {
     }
 }
 
+#[derive(Debug, Default, Clone)]
+pub(crate) struct ObserverCallbackState {
+    #[cfg(feature = "macos-private-api")]
+    windows: std::collections::HashSet<u32>,
+}
+
 fn observer_callback(
     pid: pid_t,
     ax_ui_element: AXUIElement,
     event_tx: EventTx,
+    event_filter: EventFilter,
     notification: String,
+    state: &mut ObserverCallbackState,
 ) {
-    let Some(event) = Event::from_ax_notification(&notification) else {
-        return;
+    let app_element = AXUIElement::application(pid);
+
+    // Cache the current window IDs to dispatch closed events.
+    #[cfg(feature = "macos-private-api")]
+    let previous_window_ids = {
+        use accessibility::AXUIElementAttributes;
+
+        if let Ok(windows) = app_element.windows() {
+            if notification == accessibility_sys::kAXWindowCreatedNotification
+                || notification == accessibility_sys::kAXUIElementDestroyedNotification
+            {
+                let previous = std::mem::take(&mut state.windows);
+                state.windows = windows
+                    .into_iter()
+                    .filter_map(|window| {
+                        super::ax_function::ax_ui_element_get_window_id(&window).ok()
+                    })
+                    .collect::<std::collections::HashSet<_>>();
+
+                Some(previous)
+            } else {
+                None
+            }
+        } else {
+            return;
+        }
     };
 
-    let window_element = match ax_ui_element.attribute(&AXAttribute::role()) {
-        Ok(role) if role == accessibility_sys::kAXWindowRole => ax_ui_element,
+    // Extract the window element and send the event.
+    let send_event = |event: Event| {
+        if event_filter.should_dispatch(&event) {
+            let _ = event_tx.send(event);
+        }
+    };
 
-        // When application is activated or deactivated, we need to get the focused window
-        // to dispatch the event `Event::Activated` or `Event::Deactivated`.
-        Ok(role)
-            if role == accessibility_sys::kAXApplicationActivatedNotification
-                || role == accessibility_sys::kAXApplicationDeactivatedNotification =>
-        {
-            match ax_ui_element.attribute(&AXAttribute::focused_window()) {
-                Ok(element) => element,
-                Err(accessibility::Error::Ax(accessibility_sys::kAXErrorNoValue)) => {
-                    // If the focused window is not available, the application might not have a window.
-                    return;
-                }
-                Err(e) => panic!("Failed to get focused window: {e:?}"),
+    match ax_ui_element.attribute(&AXAttribute::role()) {
+        Ok(role) if role == accessibility_sys::kAXWindowRole => {
+            dispatch_event_with_window_related_notification(
+                app_element,
+                ax_ui_element,
+                send_event,
+                &notification,
+            );
+        }
+        Ok(_) => {
+            // When application is activated or deactivated, we need to get the focused window
+            // to dispatch the event `Event::Activated` or `Event::Deactivated`.
+            // This is because `ax_ui_element` might not be a window element but an application element.
+
+            let is_deactivated =
+                notification == accessibility_sys::kAXApplicationDeactivatedNotification;
+
+            if notification == accessibility_sys::kAXApplicationActivatedNotification
+                || is_deactivated
+            {
+                dispatch_event_with_application_activated_notification(
+                    app_element,
+                    send_event,
+                    is_deactivated,
+                );
             }
         }
-
+        #[cfg(feature = "macos-private-api")]
         Err(accessibility::Error::Ax(accessibility_sys::kAXErrorInvalidUIElement)) => {
             // If the element is not a valid UI element, some window might be closed.
-            ax_ui_element
+            use super::event::dispatch_event_with_ui_element_destroyed_notification;
+
+            dispatch_event_with_ui_element_destroyed_notification(
+                &previous_window_ids.unwrap(),
+                &state.windows,
+                send_event,
+            );
         }
-
-        _ => return,
+        _ => {}
     };
-
-    // SAFETY: The `window_element` is guaranteed to be a valid `AXUIElement` representing a window.
-    let window = unsafe { PlatformWindow::new_unchecked(window_element) };
-    let window = crate::Window(window);
-    event_tx.send((window, event)).unwrap();
 }

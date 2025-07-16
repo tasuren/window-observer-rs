@@ -1,42 +1,146 @@
-use crate::Event;
+use std::collections::HashSet;
 
-/// An extension trait for the [`Event`] enum to handle macOS-specific notifications.
-pub trait EventMacOSExt {
-    /// Converts a macOS accessibility notification string into an [`Event`].
-    ///
-    /// # Parameters
-    /// - `notification`: The macOS notification string.
-    ///
-    /// # Returns
-    /// An [`Option`] containing the corresponding [`Event`], or `None` if the notification is not recognized.
-    fn from_ax_notification(notification: &str) -> Option<Event>;
+use accessibility::{AXUIElement, AXUIElementAttributes};
 
-    /// Converts an [`Event`] into its corresponding macOS accessibility notification string.
-    ///
-    /// # Returns
-    /// A static string representing the macOS notification.
-    fn ax_notification(&self) -> &'static str;
-}
+use crate::{platform_impl::PlatformWindow, Event, EventFilter, Window};
 
-impl EventMacOSExt for Event {
-    fn from_ax_notification(notification: &str) -> Option<Self> {
-        Some(match notification {
-            accessibility_sys::kAXApplicationActivatedNotification => Event::Activated,
-            accessibility_sys::kAXMovedNotification => Event::Moved,
-            accessibility_sys::kAXResizedNotification => Event::Resized,
-            accessibility_sys::kAXApplicationDeactivatedNotification => Event::Deactivated,
-            accessibility_sys::kAXUIElementDestroyedNotification => Event::Closed,
-            _ => return None,
-        })
+pub(crate) fn dispatch_event_with_application_activated_notification(
+    app_element: AXUIElement,
+    dispatch: impl Fn(Event),
+    is_deactivated: bool,
+) {
+    if let Ok(element) = app_element.focused_window() {
+        let window = Window::new(PlatformWindow::new(element));
+        if is_deactivated {
+            dispatch(Event::Unfocused { window });
+        } else {
+            dispatch(Event::Focused { window });
+        };
     }
 
-    fn ax_notification(&self) -> &'static str {
-        match *self {
-            Event::Activated => accessibility_sys::kAXApplicationActivatedNotification,
-            Event::Moved => accessibility_sys::kAXMovedNotification,
-            Event::Resized => accessibility_sys::kAXResizedNotification,
-            Event::Deactivated => accessibility_sys::kAXApplicationDeactivatedNotification,
-            Event::Closed => accessibility_sys::kAXUIElementDestroyedNotification,
+    if let Ok(elements) = app_element.windows() {
+        for element in elements.iter() {
+            let window = Window::new(PlatformWindow::new(element.clone()));
+            if is_deactivated {
+                dispatch(Event::Backgrounded { window });
+            } else {
+                dispatch(Event::Foregrounded { window });
+            }
         }
     }
+}
+
+pub(crate) fn dispatch_event_with_ui_element_destroyed_notification(
+    previous_window_ids: &HashSet<u32>,
+    current_window_ids: &HashSet<u32>,
+    dispatch: impl Fn(Event),
+) {
+    let removed = previous_window_ids.difference(current_window_ids);
+
+    for window_id in removed.cloned() {
+        let event = Event::Closed {
+            window_id: window_id.into(),
+        };
+        dispatch(event);
+    }
+}
+
+pub(crate) fn dispatch_event_with_window_related_notification(
+    app_element: AXUIElement,
+    window_element: AXUIElement,
+    dispatch: impl Fn(Event),
+    notification: &str,
+) {
+    let window = Window::new(PlatformWindow::new(window_element));
+
+    match notification {
+        accessibility_sys::kAXWindowCreatedNotification => {
+            if window.is_focused().is_ok_and(|focused| focused) {
+                dispatch(Event::Focused {
+                    window: window.clone(),
+                });
+            }
+
+            dispatch(Event::Created { window });
+        }
+        accessibility_sys::kAXMovedNotification => dispatch(Event::Moved { window }),
+        accessibility_sys::kAXResizedNotification => dispatch(Event::Resized { window }),
+        accessibility_sys::kAXFocusedWindowChangedNotification => {
+            let Ok(windows) = app_element.windows() else {
+                return;
+            };
+
+            for window_element in windows.iter() {
+                let window = Window::new(PlatformWindow::new(window_element.clone()));
+
+                if window.is_focused().is_ok_and(|focused| focused) {
+                    dispatch(Event::Focused {
+                        window: window.clone(),
+                    });
+
+                    dispatch(Event::Foregrounded {
+                        window: window.clone(),
+                    });
+                } else {
+                    dispatch(Event::Unfocused {
+                        window: window.clone(),
+                    });
+
+                    dispatch(Event::Backgrounded { window });
+                }
+            }
+        }
+        accessibility_sys::kAXWindowMiniaturizedNotification => {
+            dispatch(Event::Unfocused {
+                window: window.clone(),
+            });
+            dispatch(Event::Backgrounded { window });
+        }
+        accessibility_sys::kAXWindowDeminiaturizedNotification => {
+            dispatch(Event::Focused {
+                window: window.clone(),
+            });
+            dispatch(Event::Foregrounded { window });
+        }
+        _ => {}
+    }
+}
+
+/// Iterates over the event filter and calls the provided function
+/// for each notification name on Accessibility API.
+pub(crate) fn for_each_notification_event<E>(
+    event_filter: EventFilter,
+    mut f: impl FnMut(&'static str) -> Result<(), E>,
+) -> Result<(), E> {
+    if event_filter.focused || event_filter.foregrounded {
+        f(accessibility_sys::kAXApplicationActivatedNotification)?;
+        f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
+        f(accessibility_sys::kAXWindowMiniaturizedNotification)?;
+        f(accessibility_sys::kAXWindowCreatedNotification)?;
+    }
+
+    if event_filter.backgrounded || event_filter.unfocused {
+        f(accessibility_sys::kAXApplicationDeactivatedNotification)?;
+        f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
+        f(accessibility_sys::kAXWindowDeminiaturizedNotification)?;
+        f(accessibility_sys::kAXWindowCreatedNotification)?;
+    }
+
+    if event_filter.moved {
+        f(accessibility_sys::kAXMovedNotification)?;
+    }
+
+    if event_filter.resized {
+        f(accessibility_sys::kAXResizedNotification)?;
+    }
+
+    if event_filter.created {
+        f(accessibility_sys::kAXWindowCreatedNotification)?;
+    }
+
+    if event_filter.closed {
+        f(accessibility_sys::kAXUIElementDestroyedNotification)?;
+    }
+
+    Ok(())
 }

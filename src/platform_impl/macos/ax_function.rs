@@ -61,3 +61,25 @@ pub unsafe fn ax_value_get_value<T>(
 pub fn ax_is_process_trusted() -> bool {
     unsafe { accessibility_sys::AXIsProcessTrusted() }
 }
+
+#[cfg(feature = "macos-private-api")]
+pub fn ax_ui_element_get_window_id(element: &AXUIElement) -> Result<u32, super::PlatformError> {
+    use std::mem::MaybeUninit;
+
+    use accessibility_sys::{AXError, AXUIElementRef};
+    use core_foundation::base::ToVoid;
+
+    use crate::platform_impl::macos::error::AXErrorIntoResult;
+
+    extern "C" {
+        fn _AXUIElementGetWindow(element: AXUIElementRef, out: *mut u32) -> AXError;
+    }
+
+    unsafe {
+        let mut out = MaybeUninit::uninit();
+
+        _AXUIElementGetWindow(element.to_void() as _, out.as_mut_ptr())
+            .into_result(out.assume_init())
+            .map_err(super::PlatformError::Ax)
+    }
+}

@@ -7,8 +7,8 @@ pub mod window;
 
 use crate::platform_impl::PlatformWindowObserver;
 
+pub use ::tokio;
 pub use window::Window;
-pub use ::{smallvec, smallvec::smallvec, tokio};
 
 /// Represents errors that can occur in the library.
 #[derive(Debug, thiserror::Error)]
@@ -41,29 +41,93 @@ pub enum Error {
     PlatformSpecificError(#[from] platform_impl::PlatformError),
 }
 
+/// Represents a filter for window events.
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EventFilter {
+    pub foregrounded: bool,
+    pub backgrounded: bool,
+    pub focused: bool,
+    pub unfocused: bool,
+    pub created: bool,
+    pub resized: bool,
+    pub moved: bool,
+    pub closed: bool,
+}
+
+impl EventFilter {
+    pub(crate) fn should_dispatch(&self, event: &Event) -> bool {
+        matches!(event, Event::Foregrounded { .. }) && self.foregrounded
+            || matches!(event, Event::Backgrounded { .. }) && self.backgrounded
+            || matches!(event, Event::Focused { .. }) && self.focused
+            || matches!(event, Event::Unfocused { .. }) && self.unfocused
+            || matches!(event, Event::Created { .. }) && self.created
+            || matches!(event, Event::Resized { .. }) && self.resized
+            || matches!(event, Event::Moved { .. }) && self.moved
+            || matches!(event, Event::Closed { .. }) && self.closed
+    }
+}
+
+impl EventFilter {
+    /// Creates a new `EventFilter` with all events enabled.
+    pub fn all() -> Self {
+        Self {
+            foregrounded: true,
+            backgrounded: true,
+            focused: true,
+            unfocused: true,
+            created: true,
+            resized: true,
+            moved: true,
+            closed: true,
+        }
+    }
+
+    /// Creates a new `EventFilter` with no events enabled.
+    pub fn empty() -> Self {
+        Self {
+            foregrounded: false,
+            backgrounded: false,
+            focused: false,
+            unfocused: false,
+            created: false,
+            resized: false,
+            moved: false,
+            closed: false,
+        }
+    }
+}
+
 /// Represents events that can be observed on a window.
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
 pub enum Event {
+    /// The window was created.
+    Created { window: Window },
     /// The window was resized.
-    Resized,
+    Resized { window: Window },
     /// The window was moved.
-    Moved,
-    /// The window was activated.
+    Moved { window: Window },
+    /// The window was brought to the foreground.
+    /// This event does not mean the window has gained input focus.
     ///
     /// # Platform-specific
-    /// - **windows:** This event is occurred when the window is foregrounded.
-    Activated,
-    /// The window was deactivated. It is opposite of [`Event::Activated`].
-    Deactivated,
+    /// - **macOS:** Triggered when the application becomes active and its windows are brought to the front
+    ///   (e.g., by clicking the app's icon in the Dock).
+    ///   Note that all of the app's windows may be foregrounded simultaneously,
+    ///   potentially triggering this event for multiple windows at once.
+    Foregrounded { window: Window },
+    /// The window was backgrounded. It is opposite of [`Event::Activated`].
+    Backgrounded { window: Window },
+    /// The windows was focused.
+    Focused { window: Window },
+    /// The window was lost focus.
+    Unfocused { window: Window },
     /// The window was closed.
-    Closed,
+    Closed { window_id: window_getter::WindowId },
 }
 
 /// A type alias for the window event transmission channel.
-pub type EventTx = tokio::sync::mpsc::UnboundedSender<(Window, Event)>;
-/// A type alias for the event filter used to specify which events to observe.
-pub type EventFilter = smallvec::SmallVec<[Event; 4]>;
+pub type EventTx = tokio::sync::mpsc::UnboundedSender<Event>;
 
 /// Observes window events.
 pub struct WindowObserver(PlatformWindowObserver);

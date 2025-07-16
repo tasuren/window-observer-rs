@@ -43,6 +43,11 @@ impl From<Bounds> for Position {
 pub struct Window(pub(crate) PlatformWindow);
 
 impl Window {
+    /// Creates a new `Window` instance from a platform-specific window.
+    pub fn new(platform_window: PlatformWindow) -> Self {
+        Self(platform_window)
+    }
+
     /// Retrieves the underlying platform-specific window implementation.
     pub fn inner(&self) -> &PlatformWindow {
         &self.0
@@ -99,14 +104,14 @@ impl Window {
         }
     }
 
-    /// Checks if the window is currently active.
+    /// Checks if the window is currently focused.
     ///
     /// # Platform-specific
     /// - **windows:** It will always return [`Ok`].
-    pub fn is_active(&self) -> Result<bool, Error> {
+    pub fn is_focused(&self) -> Result<bool, Error> {
         #[cfg(target_os = "macos")]
         {
-            Ok(self.0.is_active()?)
+            Ok(self.0.is_focused()?)
         }
         #[cfg(target_os = "windows")]
         {
