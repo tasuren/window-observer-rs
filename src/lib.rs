@@ -55,19 +55,6 @@ pub struct EventFilter {
 }
 
 impl EventFilter {
-    pub(crate) fn should_dispatch(&self, event: &Event) -> bool {
-        matches!(event, Event::Foregrounded { .. }) && self.foregrounded
-            || matches!(event, Event::Backgrounded { .. }) && self.backgrounded
-            || matches!(event, Event::Focused { .. }) && self.focused
-            || matches!(event, Event::Unfocused { .. }) && self.unfocused
-            || matches!(event, Event::Created { .. }) && self.created
-            || matches!(event, Event::Resized { .. }) && self.resized
-            || matches!(event, Event::Moved { .. }) && self.moved
-            || matches!(event, Event::Closed { .. }) && self.closed
-    }
-}
-
-impl EventFilter {
     /// Creates a new `EventFilter` with all events enabled.
     pub fn all() -> Self {
         Self {
@@ -94,6 +81,17 @@ impl EventFilter {
             moved: false,
             closed: false,
         }
+    }
+
+    pub(crate) fn should_dispatch(&self, event: &Event) -> bool {
+        matches!(event, Event::Foregrounded { .. }) && self.foregrounded
+            || matches!(event, Event::Backgrounded { .. }) && self.backgrounded
+            || matches!(event, Event::Focused { .. }) && self.focused
+            || matches!(event, Event::Unfocused { .. }) && self.unfocused
+            || matches!(event, Event::Created { .. }) && self.created
+            || matches!(event, Event::Resized { .. }) && self.resized
+            || matches!(event, Event::Moved { .. }) && self.moved
+            || matches!(event, Event::Closed { .. }) && self.closed
     }
 }
 

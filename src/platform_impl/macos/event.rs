@@ -8,12 +8,15 @@ pub(crate) fn dispatch_event_with_application_activated_notification(
     app_element: AXUIElement,
     dispatch: impl Fn(Event),
     is_deactivated: bool,
+    state: &mut FocusState,
 ) {
     if let Ok(element) = app_element.focused_window() {
         let window = Window::new(PlatformWindow::new(element));
+
         if is_deactivated {
             dispatch(Event::Unfocused { window });
         } else {
+            state.previous = Some(window.clone());
             dispatch(Event::Focused { window });
         };
     }
@@ -45,11 +48,17 @@ pub(crate) fn dispatch_event_with_ui_element_destroyed_notification(
     }
 }
 
+#[derive(Default, Debug, Clone)]
+pub(crate) struct FocusState {
+    previous: Option<Window>,
+}
+
 pub(crate) fn dispatch_event_with_window_related_notification(
     app_element: AXUIElement,
     window_element: AXUIElement,
     dispatch: impl Fn(Event),
     notification: &str,
+    state: &mut FocusState,
 ) {
     let window = Window::new(PlatformWindow::new(window_element));
 
@@ -59,6 +68,7 @@ pub(crate) fn dispatch_event_with_window_related_notification(
                 dispatch(Event::Focused {
                     window: window.clone(),
                 });
+                state.previous = Some(window.clone());
             }
 
             dispatch(Event::Created { window });
@@ -66,28 +76,20 @@ pub(crate) fn dispatch_event_with_window_related_notification(
         accessibility_sys::kAXMovedNotification => dispatch(Event::Moved { window }),
         accessibility_sys::kAXResizedNotification => dispatch(Event::Resized { window }),
         accessibility_sys::kAXFocusedWindowChangedNotification => {
-            let Ok(windows) = app_element.windows() else {
-                return;
-            };
+            dispatch(Event::Focused {
+                window: window.clone(),
+            });
+            dispatch(Event::Foregrounded {
+                window: window.clone(),
+            });
 
-            for window_element in windows.iter() {
-                let window = Window::new(PlatformWindow::new(window_element.clone()));
+            let previous_focused_window = state.previous.replace(window);
 
-                if window.is_focused().is_ok_and(|focused| focused) {
-                    dispatch(Event::Focused {
-                        window: window.clone(),
-                    });
-
-                    dispatch(Event::Foregrounded {
-                        window: window.clone(),
-                    });
-                } else {
-                    dispatch(Event::Unfocused {
-                        window: window.clone(),
-                    });
-
-                    dispatch(Event::Backgrounded { window });
-                }
+            if let Some(window) = previous_focused_window {
+                dispatch(Event::Unfocused {
+                    window: window.clone(),
+                });
+                dispatch(Event::Backgrounded { window });
             }
         }
         accessibility_sys::kAXWindowMiniaturizedNotification => {
@@ -97,6 +99,8 @@ pub(crate) fn dispatch_event_with_window_related_notification(
             dispatch(Event::Backgrounded { window });
         }
         accessibility_sys::kAXWindowDeminiaturizedNotification => {
+            state.previous = Some(window.clone());
+
             dispatch(Event::Focused {
                 window: window.clone(),
             });

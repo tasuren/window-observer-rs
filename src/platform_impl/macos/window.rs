@@ -1,4 +1,4 @@
-use accessibility::{AXAttribute, AXUIElement};
+use accessibility::{AXAttribute, AXUIElement, AXUIElementAttributes};
 use objc2_core_foundation::{CGPoint, CGSize};
 
 use super::{
@@ -57,7 +57,7 @@ impl PlatformWindow {
 
     /// Retrieves the title of the window.
     pub fn title(&self) -> Result<String, PlatformError> {
-        Ok(self.0.attribute(&AXAttribute::title())?.to_string())
+        Ok(self.0.title()?.to_string())
     }
 
     /// Retrieves the size of the window.
@@ -80,7 +80,7 @@ impl PlatformWindow {
 
     /// Checks if the window is currently active.
     pub fn is_focused(&self) -> Result<bool, PlatformError> {
-        Ok(self.0.attribute(&AXAttribute::focused())?.into())
+        Ok(self.0.focused()?.into())
     }
 
     /// Retrieves the id of the window. The value is [`CGWindowID`][window_id] on macOS.

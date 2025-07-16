@@ -9,7 +9,7 @@ use super::{
 use crate::{
     platform_impl::macos::event::{
         dispatch_event_with_application_activated_notification,
-        dispatch_event_with_window_related_notification, for_each_notification_event,
+        dispatch_event_with_window_related_notification, for_each_notification_event, FocusState,
     },
     Error, Event, EventFilter, EventTx,
 };
@@ -99,6 +99,7 @@ impl Drop for PlatformWindowObserver {
 pub(crate) struct ObserverCallbackState {
     #[cfg(feature = "macos-private-api")]
     windows: std::collections::HashSet<u32>,
+    focus_state: FocusState,
 }
 
 fn observer_callback(
@@ -151,6 +152,7 @@ fn observer_callback(
                 ax_ui_element,
                 send_event,
                 &notification,
+                &mut state.focus_state,
             );
         }
         Ok(_) => {
@@ -168,6 +170,7 @@ fn observer_callback(
                     app_element,
                     send_event,
                     is_deactivated,
+                    &mut state.focus_state,
                 );
             }
         }
