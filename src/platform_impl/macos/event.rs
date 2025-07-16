@@ -54,7 +54,6 @@ pub(crate) struct FocusState {
 }
 
 pub(crate) fn dispatch_event_with_window_related_notification(
-    app_element: AXUIElement,
     window_element: AXUIElement,
     dispatch: impl Fn(Event),
     notification: &str,

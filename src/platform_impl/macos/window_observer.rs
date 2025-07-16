@@ -148,7 +148,6 @@ fn observer_callback(
     match ax_ui_element.attribute(&AXAttribute::role()) {
         Ok(role) if role == accessibility_sys::kAXWindowRole => {
             dispatch_event_with_window_related_notification(
-                app_element,
                 ax_ui_element,
                 send_event,
                 &notification,
