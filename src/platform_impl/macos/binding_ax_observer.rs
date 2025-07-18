@@ -1,3 +1,5 @@
+//! This module provides bindings for [`AXObserverRef`].
+
 use std::{ptr::NonNull, sync::Mutex};
 
 use accessibility::AXUIElement;
@@ -7,10 +9,14 @@ use objc2_core_foundation::{CFRetained, CFRunLoopSource, CFString};
 
 use super::error::AXErrorIntoResult;
 
-type Callback = Box<dyn FnMut(AXUIElement, String)>;
+/// A type alias for the callback function used by the [`AXObserver`].
+/// It takes an [`AXUIElement`] and a [notification][notification] string as parameters.
+///
+/// [notification]: https://developer.apple.com/documentation/applicationservices/axnotificationconstants_h?language=objc
+pub type ObserverCallback = Box<dyn FnMut(AXUIElement, String)>;
 
 struct RefCon {
-    callback: Callback,
+    callback: ObserverCallback,
 }
 
 extern "C" fn observer_callback(
@@ -38,7 +44,7 @@ pub struct AXObserver {
 impl AXObserver {
     /// Creates a new `AXObserver` for a given process ID and callback function.
     /// The `AXObserver` will call the callback function when a notification is received.
-    pub fn create(pid: pid_t, callback: Callback) -> Result<Self, AXError> {
+    pub fn create(pid: pid_t, callback: ObserverCallback) -> Result<Self, AXError> {
         let mut observer: AXObserverRef = std::ptr::null_mut();
 
         unsafe {

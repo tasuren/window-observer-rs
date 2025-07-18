@@ -1,7 +1,7 @@
 #[cfg(target_os = "macos")]
 pub mod macos;
 #[cfg(target_os = "macos")]
-pub use macos::{window::PlatformWindow, PlatformError, PlatformWindowObserver};
+pub use macos::{PlatformError, PlatformWindow, PlatformWindowObserver};
 
 #[cfg(target_os = "windows")]
 pub mod windows;

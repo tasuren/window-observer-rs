@@ -1,3 +1,6 @@
+//! This module provides bindings for accessibility functions
+//! related to [`AXUIElement`] and [`AXValueRef`].
+
 use accessibility::AXUIElement;
 use accessibility_sys::{AXError, AXValueGetValue, AXValueRef};
 use core_foundation::{
@@ -10,7 +13,7 @@ use super::error::AXErrorIntoResult;
 /// Copies the value of a specified attribute from an [`AXUIElement`].
 ///
 /// # Parameters
-/// - `element`: The [`AXUIElement`] to query.
+/// - `element`: The `AXUIElement` to query.
 /// - `attribute`: The name of the attribute to retrieve.
 ///
 /// # Returns

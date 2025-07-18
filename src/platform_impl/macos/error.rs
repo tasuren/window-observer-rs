@@ -1,25 +1,10 @@
-pub use accessibility::Error as PlatformError;
+use accessibility::Error;
 use accessibility_sys::AXError;
 
-#[derive(Debug, thiserror::Error)]
-#[error("Unexpected UI element is received: expected = {expected}, received = {received:?}")]
-pub struct UnexpectedUIElementError {
-    pub element: accessibility::AXUIElement,
-    pub expected: &'static str,
-    pub received: Result<String, accessibility::Error>,
-}
-
-#[non_exhaustive]
-#[derive(Debug, thiserror::Error)]
-pub enum MacOSError {
-    #[error(transparent)]
-    UnexpectedUIElement(#[from] UnexpectedUIElementError),
-    #[error("Accessibility library error occurred")]
-    Accessibility(#[from] accessibility::Error),
-}
+pub type MacOSError = Error;
 
 /// A trait to convert [`AXError`] into a [`Result`] type.
-pub trait AXErrorIntoResult {
+pub(crate) trait AXErrorIntoResult {
     /// Converts the [`AXError`] into a [`Result`].
     ///
     /// # Parameters

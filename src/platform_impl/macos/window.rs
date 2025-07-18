@@ -1,15 +1,11 @@
 use accessibility::{AXUIElement, AXUIElementAttributes};
-use accessibility_sys::kAXWindowRole;
 use objc2_core_foundation::{CGPoint, CGSize};
 
 use super::{
-    ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value},
+    binding_ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value},
     PlatformError,
 };
-use crate::{
-    platform_impl::macos::error::UnexpectedUIElementError,
-    window::{Position, Size},
-};
+use crate::window::{Position, Size};
 
 impl From<CGSize> for Size {
     fn from(size: CGSize) -> Self {
@@ -30,43 +26,22 @@ impl From<CGPoint> for Position {
 }
 
 /// Represents a macOS window and provides methods to interact with it.
-/// This is the wrapper of [`AXUIElement`].
+/// This is the wrapper of [`AXUIElement`] which represents a window.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PlatformWindow(AXUIElement);
+pub struct WindowUIElement(AXUIElement);
 
-unsafe impl Send for PlatformWindow {}
-unsafe impl Sync for PlatformWindow {}
+unsafe impl Send for WindowUIElement {}
+unsafe impl Sync for WindowUIElement {}
 
-impl PlatformWindow {
-    /// Creates a new [`PlatformWindow`] instance from an [`AXUIElement`].
-    pub fn new(element: AXUIElement) -> Result<Self, UnexpectedUIElementError> {
-        let role = match element.role() {
-            Ok(role) => role.to_string(),
-            Err(error) => {
-                return Err(UnexpectedUIElementError {
-                    element,
-                    expected: kAXWindowRole,
-                    received: Err(error),
-                })
-            }
-        };
-
-        match role.as_str() {
-            accessibility_sys::kAXWindowRole => Ok(Self(element)),
-            _ => Err(UnexpectedUIElementError {
-                element,
-                expected: kAXWindowRole,
-                received: Ok(role),
-            }),
-        }
-    }
-
-    /// Creates a new [`PlatformWindow`] instance without checking the role.
+impl WindowUIElement {
+    /// Creates a new [`WindowUIElement`] instance from an [`AXUIElement`].
     ///
-    /// # Safety
+    /// # Warning
     /// You need to ensure that the provided `AXUIElement` is indeed a window.
-    /// This means that the role of the element must be [`kAXWindowRole`].
-    pub unsafe fn new_unchecked(element: AXUIElement) -> Self {
+    /// This means that the role of the element must be [`kAXWindowRole`][accessibility_sys::kAXWindowRole].
+    ///
+    /// If the role is not a window, the methods will always return an error.
+    pub fn new(element: AXUIElement) -> Self {
         Self(element)
     }
 
@@ -114,7 +89,7 @@ impl PlatformWindow {
         Ok(self.0.focused()?.into())
     }
 
-    /// Retrieves the id of the window. The value is [`CGWindowID`][window_id] on macOS.
+    /// Retrieves the id of the window. The value is [`CGWindowID`][window_id].
     ///
     /// # Warning
     /// This function will call private API `_AXUIElementGetWindow` of macOS.
@@ -124,6 +99,6 @@ impl PlatformWindow {
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
     #[cfg(feature = "macos-private-api")]
     pub fn id(&self) -> Result<u32, PlatformError> {
-        super::ax_function::ax_ui_element_get_window_id(&self.0)
+        super::binding_ax_function::ax_ui_element_get_window_id(&self.0)
     }
 }

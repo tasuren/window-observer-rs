@@ -11,6 +11,7 @@ pub use ::tokio;
 pub use window::Window;
 
 /// Represents errors that can occur in the library.
+#[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// The process ID is invalid for observing windows.
@@ -44,13 +45,21 @@ pub enum Error {
 /// Represents a filter for window events.
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EventFilter {
+    /// Whether to observe [`Event::Foregrounded`] events.
     pub foregrounded: bool,
+    /// Whether to observe [`Event::Backgrounded`] events.
     pub backgrounded: bool,
+    /// Whether to observe [`Event::Focused`] events.
     pub focused: bool,
+    /// Whether to observe [`Event::Unfocused`] events.
     pub unfocused: bool,
+    /// Whether to observe [`Event::Created`] events.
     pub created: bool,
+    /// Whether to observe [`Event::Resized`] events.
     pub resized: bool,
+    /// Whether to observe [`Event::Moved`] events.
     pub moved: bool,
+    /// Whether to observe [`Event::Closed`] events.
     pub closed: bool,
 }
 
@@ -108,7 +117,7 @@ pub enum Event {
     /// The window was brought to the foreground.
     /// This event does not mean the window has gained input focus.
     Foregrounded { window: Window },
-    /// The window was backgrounded. It is opposite of [`Event::Activated`].
+    /// The window was backgrounded. It is opposite of [`Event::Foregrounded`].
     Backgrounded { window: Window },
     /// The windows was focused.
     Focused { window: Window },
@@ -118,6 +127,8 @@ pub enum Event {
     Closed { window_id: window_getter::WindowId },
 }
 
+/// A type alias for the result of an event.
+/// `Err` means that the event could not be processed, and `Ok` contains the event.
 pub type EventResult = Result<Event, platform_impl::PlatformError>;
 /// A type alias for the window event transmission channel.
 pub type EventTx = tokio::sync::mpsc::UnboundedSender<EventResult>;

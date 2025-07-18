@@ -3,10 +3,10 @@ use std::thread::{self, JoinHandle};
 use objc2_core_foundation::{kCFRunLoopDefaultMode, CFRetained, CFRunLoop, CFRunLoopSource};
 use tokio::sync::OnceCell;
 
-use super::ax_observer::AXObserver;
+use super::binding_ax_observer::AXObserver;
 
 /// The wrapper of [`CFRunLoop`] for [`AXObserver`].
-pub(crate) struct EventLoop {
+pub struct EventLoop {
     run_loop: CFRetained<CFRunLoop>,
     handle: JoinHandle<()>,
 }
@@ -56,13 +56,13 @@ static EVENT_LOOP: OnceCell<EventLoop> = OnceCell::const_new();
 
 /// Returns a reference to the global event loop for the observer.
 /// This function initializes the event loop and starts it if it hasn't been initialized yet.
-pub(crate) async fn event_loop() -> &'static EventLoop {
+pub async fn event_loop() -> &'static EventLoop {
     EVENT_LOOP
         .get_or_init(|| async { EventLoop::new().await })
         .await
 }
 
-pub(crate) fn get_event_loop<'a>() -> Option<&'a EventLoop> {
+pub fn get_event_loop<'a>() -> Option<&'a EventLoop> {
     EVENT_LOOP.get()
 }
 

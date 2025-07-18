@@ -140,6 +140,9 @@ impl Window {
     /// Retrieves the `Window` implementation by [window-getter-rs][window-getter-rs].
     ///
     /// [window-getter-rs]: https://github.com/tasuren/window-getter-rs
+    ///
+    /// # Platform-specific
+    /// - **windows:** It will always return `Ok(Some(Window))`.
     #[cfg(feature = "macos-private-api")]
     pub fn create_window_getter_window(&self) -> Result<Option<window_getter::Window>, Error> {
         #[cfg(target_os = "macos")]
@@ -148,8 +151,8 @@ impl Window {
         }
         #[cfg(target_os = "windows")]
         {
-            let window =
-                unsafe { window_getter::platform_impl::PlatformWindow::new(self.inner().hwnd()) };
+            let hwnd = self.inner().hwnd();
+            let window = unsafe { window_getter::platform_impl::PlatformWindow::new(hwnd) };
             Ok(Some(window_getter::Window::new(window)))
         }
     }

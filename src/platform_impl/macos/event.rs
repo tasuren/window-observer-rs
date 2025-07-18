@@ -4,7 +4,7 @@ use crate::{platform_impl::PlatformWindow, Event, EventFilter, EventTx, Window};
 
 #[inline]
 fn create_window_unchecked(element: AXUIElement) -> Window {
-    Window::new(unsafe { PlatformWindow::new_unchecked(element) })
+    Window::new(PlatformWindow::new(element))
 }
 
 #[derive(Default, Clone, Debug)]
@@ -70,7 +70,9 @@ impl EventInterpreter {
             .app_element
             .windows()?
             .into_iter()
-            .filter_map(|window| super::ax_function::ax_ui_element_get_window_id(&window).ok())
+            .filter_map(|window| {
+                super::binding_ax_function::ax_ui_element_get_window_id(&window).ok()
+            })
             .collect::<std::collections::HashSet<_>>();
         self.state.previous_window_ids =
             std::mem::replace(&mut self.state.current_window_ids, current);

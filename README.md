@@ -6,7 +6,7 @@ It is designed to receive window events on Windows and macOS for cross-platform 
 
 ## Example
 ```rust
-use window_observer::{self, Event, WindowObserver};
+use window_observer::{EventFilter, WindowObserver};
 
 #[tokio::main]
 async fn main() {
@@ -15,14 +15,17 @@ async fn main() {
         .expect("Please give me the env `PID` of application that has window.");
 
     let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel();
-    let event_filter = window_observer::smallvec![Event::Activated, Event::Moved, Event::Resized];
+    let event_filter = EventFilter::all();
 
     let _window_observer = WindowObserver::start(pid, event_tx, event_filter)
         .await
         .unwrap();
 
-    while let Some((_window, event)) = event_rx.recv().await {
-        println!("{event:?}");
+    while let Some(event) = event_rx.recv().await {
+        match event {
+            Ok(event) => println!("new event: {event:#?}"),
+            Err(e) => eprintln!("Error occurred during handling event: {e:#?}"),
+        }
     }
 }
 ```

@@ -1,8 +1,8 @@
 use accessibility::AXUIElement;
 
 use super::{
-    ax_function::ax_is_process_trusted,
-    ax_observer::AXObserver,
+    binding_ax_function::ax_is_process_trusted,
+    binding_ax_observer::AXObserver,
     event_loop::{event_loop, get_event_loop, ObserverSource},
 };
 use crate::{
@@ -12,13 +12,13 @@ use crate::{
 
 /// Observes macOS window events and provides an interface to manage them.
 /// This is wrapper of [`AXObserver`].
-pub struct PlatformWindowObserver {
+pub struct MacOSObserver {
     source: ObserverSource,
     stopped: bool,
 }
 
-impl PlatformWindowObserver {
-    /// Creates a new [`PlatformWindowObserver`] for a given process ID and event channel.
+impl MacOSObserver {
+    /// Creates a new [`MacOSObserver`] for a given process ID and event channel.
     pub async fn start(
         pid: accessibility_sys::pid_t,
         event_tx: EventTx,
@@ -73,7 +73,7 @@ impl PlatformWindowObserver {
     }
 }
 
-impl Drop for PlatformWindowObserver {
+impl Drop for MacOSObserver {
     fn drop(&mut self) {
         if !self.stopped {
             // Unregister the observer in case the `stop` method was not called.
