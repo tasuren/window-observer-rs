@@ -3,17 +3,13 @@ use window_getter::platform_impl::get_window;
 use windows::Win32::Foundation;
 use wineventhook::{raw_event, WindowEventHook};
 
-use super::{event::EventManager, PlatformError};
+use super::{event::EventInterpreter, PlatformError};
 use crate::{EventFilter, EventTx};
 
 fn handle_events(
-    pid: u32,
     mut rx: UnboundedReceiver<wineventhook::WindowEvent>,
-    event_tx: EventTx,
-    event_filter: EventFilter,
+    mut event_interpreter: EventInterpreter,
 ) {
-    let mut event_manager = EventManager::new(pid);
-
     while let Some(event) = rx.blocking_recv() {
         if let Some(hwnd) = event.window_handle() {
             let hwnd = Foundation::HWND(hwnd.as_ptr() as _);
@@ -21,18 +17,7 @@ fn handle_events(
                 continue;
             };
 
-            let Some((event, window)) = event_manager.convert_event(window, event) else {
-                continue;
-            };
-
-            if !event_filter.contains(&event) {
-                continue;
-            }
-
-            let window = crate::Window(window);
-            if event_tx.send((window, event)).is_err() {
-                break;
-            };
+            event_interpreter.interpret_wineventhook_event(window, event);
         }
     }
 }
@@ -50,7 +35,11 @@ pub async fn make_wineventhook_task(
     )
     .await?;
 
-    std::thread::spawn(move || handle_events(pid, rx, event_tx, event_filter));
+    std::thread::spawn(move || {
+        let event_interpreter = EventInterpreter::new(pid, event_tx, event_filter);
+
+        handle_events(rx, event_interpreter);
+    });
 
     Ok(hook)
 }

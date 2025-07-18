@@ -1,11 +1,10 @@
 //! Windows-specific implementation for the observer.
 
 pub mod error;
-pub mod event;
+mod event;
+mod hook_task;
 pub mod observer;
-mod task;
 
-pub use error::PlatformError;
-pub use observer::PlatformWindowObserver;
-
-pub use window_getter::platform_impl::PlatformWindow;
+pub type PlatformWindow = window_getter::platform_impl::PlatformWindow;
+pub type PlatformWindowObserver = observer::WindowsWindowObserver;
+pub type PlatformError = error::WindowsError;

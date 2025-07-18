@@ -2,14 +2,14 @@ use wineventhook::WindowEventHook;
 
 use crate::{Error, EventTx};
 
-use super::task::make_wineventhook_task;
+use super::hook_task::make_wineventhook_task;
 
 /// Observes window events on the Windows platform by using [wineventhook].
-pub struct PlatformWindowObserver {
+pub struct WindowsWindowObserver {
     hook: WindowEventHook,
 }
 
-impl PlatformWindowObserver {
+impl WindowsWindowObserver {
     /// Starts observing window events for a specific process ID.
     pub async fn start(
         pid: u32,

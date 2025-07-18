@@ -1,42 +1,4 @@
-use window_getter::Bounds;
-
 use crate::{platform_impl::PlatformWindow, Error};
-
-/// Represents the size of a window.
-#[derive(Default, Debug)]
-pub struct Size {
-    /// The width of the window.
-    pub width: f64,
-    /// The height of the window.
-    pub height: f64,
-}
-
-/// Represents the position of a window.
-#[derive(Default, Debug)]
-pub struct Position {
-    /// The x-coordinate of the window.
-    pub x: f64,
-    /// The y-coordinate of the window.
-    pub y: f64,
-}
-
-impl From<Bounds> for Size {
-    fn from(value: Bounds) -> Self {
-        Size {
-            width: value.width(),
-            height: value.height(),
-        }
-    }
-}
-
-impl From<Bounds> for Position {
-    fn from(value: Bounds) -> Self {
-        Position {
-            x: value.x(),
-            y: value.y(),
-        }
-    }
-}
 
 /// A wrapper around platform-specific window implementations.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -78,12 +40,11 @@ impl Window {
         }
         #[cfg(target_os = "windows")]
         {
-            Ok(window_getter::Bounds::new(
-                self.0
-                    .visible_bounds()
-                    .map_err(|e| Error::PlatformSpecificError(e.into()))?,
-            )
-            .into())
+            Ok(self
+                .0
+                .visible_bounds()
+                .map_err(|e| Error::PlatformSpecificError(e.into()))?
+                .into())
         }
     }
 
@@ -95,12 +56,11 @@ impl Window {
         }
         #[cfg(target_os = "windows")]
         {
-            Ok(window_getter::Bounds::new(
-                self.0
-                    .visible_bounds()
-                    .map_err(|e| Error::PlatformSpecificError(e.into()))?,
-            )
-            .into())
+            Ok(self
+                .0
+                .visible_bounds()
+                .map_err(|e| Error::PlatformSpecificError(e.into()))?
+                .into())
         }
     }
 
@@ -154,6 +114,48 @@ impl Window {
             let hwnd = self.inner().hwnd();
             let window = unsafe { window_getter::platform_impl::PlatformWindow::new(hwnd) };
             Ok(Some(window_getter::Window::new(window)))
+        }
+    }
+}
+
+/// Represents the size of a window.
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Size {
+    /// The width of the window.
+    pub width: f64,
+    /// The height of the window.
+    pub height: f64,
+}
+
+/// Represents the position of a window.
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Position {
+    /// The x-coordinate of the window.
+    pub x: f64,
+    /// The y-coordinate of the window.
+    pub y: f64,
+}
+
+#[cfg(target_os = "windows")]
+mod platform_bounds_conversion {
+    use super::{Position, Size};
+    use window_getter::platform_impl::PlatformBounds;
+
+    impl From<PlatformBounds> for Size {
+        fn from(value: PlatformBounds) -> Self {
+            Size {
+                width: value.width() as f64,
+                height: value.height() as f64,
+            }
+        }
+    }
+
+    impl From<PlatformBounds> for Position {
+        fn from(value: PlatformBounds) -> Self {
+            Position {
+                x: value.x() as f64,
+                y: value.y() as f64,
+            }
         }
     }
 }
