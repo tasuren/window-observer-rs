@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use accessibility::{AXUIElement, AXUIElementAttributes};
 
 use crate::{platform_impl::PlatformWindow, Event, EventFilter, EventTx, Window};
@@ -12,9 +10,9 @@ fn create_window_unchecked(element: AXUIElement) -> Window {
 #[derive(Default, Clone, Debug)]
 struct EventInterpreterState {
     #[cfg(feature = "macos-private-api")]
-    current_window_ids: HashSet<u32>,
+    current_window_ids: std::collections::HashSet<u32>,
     #[cfg(feature = "macos-private-api")]
-    previous_window_ids: HashSet<u32>,
+    previous_window_ids: std::collections::HashSet<u32>,
     previous_focused_window: Option<AXUIElement>,
 }
 
@@ -202,6 +200,7 @@ impl EventInterpreter {
             accessibility_sys::kAXWindowCreatedNotification => {
                 self.on_window_created(element)?;
             }
+            #[cfg(feature = "macos-private-api")]
             accessibility_sys::kAXUIElementDestroyedNotification => {
                 self.on_ui_element_destroyed()?;
             }
@@ -249,10 +248,24 @@ pub(crate) fn for_each_notification_event<E>(
     event_filter: EventFilter,
     mut f: impl FnMut(&'static str) -> Result<(), E>,
 ) -> Result<(), E> {
-    if event_filter.focused || event_filter.foregrounded {
+    if event_filter.focused {
         f(accessibility_sys::kAXApplicationActivatedNotification)?;
         f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
+        f(accessibility_sys::kAXWindowDeminiaturizedNotification)?;
+    }
+
+    if event_filter.foregrounded {
+        f(accessibility_sys::kAXApplicationActivatedNotification)?;
+        f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
+        f(accessibility_sys::kAXWindowDeminiaturizedNotification)?;
+    }
+
+    if event_filter.unfocused {
+        f(accessibility_sys::kAXApplicationActivatedNotification)?;
+        f(accessibility_sys::kAXApplicationDeactivatedNotification)?;
+        f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
         f(accessibility_sys::kAXWindowMiniaturizedNotification)?;
+        f(accessibility_sys::kAXWindowDeminiaturizedNotification)?;
     }
 
     if event_filter.backgrounded {
