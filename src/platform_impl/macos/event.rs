@@ -219,22 +219,16 @@ pub(crate) fn for_each_notification_event<E>(
     mut f: impl FnMut(&'static str) -> Result<(), E>,
 ) -> Result<(), E> {
     if event_filter.focused {
-        f(accessibility_sys::kAXApplicationActivatedNotification)?;
         f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
-        f(accessibility_sys::kAXWindowDeminiaturizedNotification)?;
+    }
+
+    if event_filter.unfocused {
+        f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
     }
 
     if event_filter.foregrounded {
         f(accessibility_sys::kAXApplicationActivatedNotification)?;
         f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
-        f(accessibility_sys::kAXWindowDeminiaturizedNotification)?;
-    }
-
-    if event_filter.unfocused {
-        f(accessibility_sys::kAXApplicationActivatedNotification)?;
-        f(accessibility_sys::kAXApplicationDeactivatedNotification)?;
-        f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
-        f(accessibility_sys::kAXWindowMiniaturizedNotification)?;
         f(accessibility_sys::kAXWindowDeminiaturizedNotification)?;
     }
 

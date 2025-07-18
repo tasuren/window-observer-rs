@@ -107,12 +107,6 @@ pub enum Event {
     Moved { window: Window },
     /// The window was brought to the foreground.
     /// This event does not mean the window has gained input focus.
-    ///
-    /// # Platform-specific
-    /// - **macOS:** Triggered when the application becomes active and its windows are brought to the front
-    ///   (e.g., by clicking the app's icon in the Dock).
-    ///   Note that all of the app's windows may be foregrounded simultaneously,
-    ///   potentially triggering this event for multiple windows at once.
     Foregrounded { window: Window },
     /// The window was backgrounded. It is opposite of [`Event::Activated`].
     Backgrounded { window: Window },
