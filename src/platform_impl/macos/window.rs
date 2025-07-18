@@ -1,19 +1,15 @@
-use accessibility::{AXAttribute, AXUIElement, AXUIElementAttributes};
+use accessibility::{AXUIElement, AXUIElementAttributes};
+use accessibility_sys::kAXWindowRole;
 use objc2_core_foundation::{CGPoint, CGSize};
 
 use super::{
     ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value},
     PlatformError,
 };
-use crate::window::{Position, Size};
-
-/// Represents a macOS window and provides methods to interact with it.
-/// This is the wrapper of [`AXUIElement`].
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PlatformWindow(AXUIElement);
-
-unsafe impl Send for PlatformWindow {}
-unsafe impl Sync for PlatformWindow {}
+use crate::{
+    platform_impl::macos::error::UnexpectedUIElementError,
+    window::{Position, Size},
+};
 
 impl From<CGSize> for Size {
     fn from(size: CGSize) -> Self {
@@ -33,9 +29,44 @@ impl From<CGPoint> for Position {
     }
 }
 
+/// Represents a macOS window and provides methods to interact with it.
+/// This is the wrapper of [`AXUIElement`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PlatformWindow(AXUIElement);
+
+unsafe impl Send for PlatformWindow {}
+unsafe impl Sync for PlatformWindow {}
+
 impl PlatformWindow {
     /// Creates a new [`PlatformWindow`] instance from an [`AXUIElement`].
-    pub fn new(element: AXUIElement) -> Self {
+    pub fn new(element: AXUIElement) -> Result<Self, UnexpectedUIElementError> {
+        let role = match element.role() {
+            Ok(role) => role.to_string(),
+            Err(error) => {
+                return Err(UnexpectedUIElementError {
+                    element,
+                    expected: kAXWindowRole,
+                    received: Err(error),
+                })
+            }
+        };
+
+        match role.as_str() {
+            accessibility_sys::kAXWindowRole => Ok(Self(element)),
+            _ => Err(UnexpectedUIElementError {
+                element,
+                expected: kAXWindowRole,
+                received: Ok(role),
+            }),
+        }
+    }
+
+    /// Creates a new [`PlatformWindow`] instance without checking the role.
+    ///
+    /// # Safety
+    /// You need to ensure that the provided `AXUIElement` is indeed a window.
+    /// This means that the role of the element must be [`kAXWindowRole`].
+    pub unsafe fn new_unchecked(element: AXUIElement) -> Self {
         Self(element)
     }
 

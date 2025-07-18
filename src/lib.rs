@@ -118,14 +118,15 @@ pub enum Event {
     Backgrounded { window: Window },
     /// The windows was focused.
     Focused { window: Window },
-    /// The window was lost focus.
+    /// The window was unfocused.
     Unfocused { window: Window },
     /// The window was closed.
     Closed { window_id: window_getter::WindowId },
 }
 
+pub type EventResult = Result<Event, platform_impl::PlatformError>;
 /// A type alias for the window event transmission channel.
-pub type EventTx = tokio::sync::mpsc::UnboundedSender<Event>;
+pub type EventTx = tokio::sync::mpsc::UnboundedSender<EventResult>;
 
 /// Observes window events.
 pub struct WindowObserver(PlatformWindowObserver);
