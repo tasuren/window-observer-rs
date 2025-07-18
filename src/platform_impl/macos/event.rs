@@ -39,54 +39,15 @@ impl EventInterpreter {
         }
     }
 
-    fn dispatch_focus_change(&mut self, window_element: AXUIElement) {
-        // If focused window is changed, we should also dispatch the unfocused event.
-        if let Some(element) = self
-            .state
-            .previous_focused_window
-            .replace(window_element.clone())
-            .and_then(|e| (e != window_element).then_some(e))
-        {
-            let window = create_window_unchecked(element);
-            self.dispatch(Event::Unfocused { window });
-        }
-
-        let window = create_window_unchecked(window_element);
-        self.dispatch(Event::Focused { window });
-    }
-
-    fn dispatch_maybe_unfocused(&mut self, window_element: AXUIElement) {
-        if self
-            .state
-            .previous_focused_window
-            .as_ref()
-            .is_some_and(|e| *e == window_element)
-        {
-            self.state.previous_focused_window = None;
-
-            let window = create_window_unchecked(window_element);
-            self.dispatch(Event::Unfocused { window });
-        }
-    }
-
     fn on_application_activated_or_deactivated(
         &mut self,
         is_deactivated: bool,
     ) -> Result<(), accessibility::Error> {
-        if !is_deactivated {
-            self.dispatch_focus_change(self.app_element.focused_window()?);
-        };
-
         for element in self.app_element.windows()?.iter() {
             let window = create_window_unchecked(element.clone());
 
             if is_deactivated {
                 self.dispatch(Event::Backgrounded { window });
-
-                // If previously focused window is the same as the current element,
-                // it means that the window is being unfocused because
-                // the application is deactivated.
-                self.dispatch_maybe_unfocused(element.clone());
             } else {
                 self.dispatch(Event::Foregrounded { window });
             }
@@ -170,10 +131,22 @@ impl EventInterpreter {
             }
         }
 
-        self.dispatch_focus_change(element.clone());
+        let window = create_window_unchecked(element.clone());
+        self.dispatch(Event::Foregrounded { window });
+
+        // If focused window is changed, we should also dispatch the unfocused event.
+        if let Some(previous_window_element) = self
+            .state
+            .previous_focused_window
+            .replace(element.clone())
+            .and_then(|e| (e != element).then_some(e))
+        {
+            let window = create_window_unchecked(previous_window_element);
+            self.dispatch(Event::Unfocused { window });
+        }
 
         let window = create_window_unchecked(element);
-        self.dispatch(Event::Foregrounded { window });
+        self.dispatch(Event::Focused { window });
 
         Ok(())
     }
@@ -181,12 +154,9 @@ impl EventInterpreter {
     pub fn on_window_miniaturized(&mut self, element: AXUIElement) {
         let window = create_window_unchecked(element.clone());
         self.dispatch(Event::Backgrounded { window });
-
-        self.dispatch_maybe_unfocused(element);
     }
 
     pub fn on_window_deminimized(&mut self, element: AXUIElement) {
-        self.dispatch_focus_change(element.clone());
         let window = create_window_unchecked(element);
         self.dispatch(Event::Foregrounded { window });
     }
