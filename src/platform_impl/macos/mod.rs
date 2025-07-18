@@ -9,5 +9,5 @@ pub mod window;
 pub mod window_observer;
 
 pub type PlatformError = error::MacOSError;
-pub type PlatformWindowObserver = window_observer::MacOSObserver;
+pub type PlatformWindowObserver = window_observer::MacOSWindowObserver;
 pub type PlatformWindow = window::WindowUIElement;

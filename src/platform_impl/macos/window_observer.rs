@@ -12,13 +12,13 @@ use crate::{
 
 /// Observes macOS window events and provides an interface to manage them.
 /// This is wrapper of [`AXObserver`].
-pub struct MacOSObserver {
+pub struct MacOSWindowObserver {
     source: ObserverSource,
     stopped: bool,
 }
 
-impl MacOSObserver {
-    /// Creates a new [`MacOSObserver`] for a given process ID and event channel.
+impl MacOSWindowObserver {
+    /// Creates a new `MacOSWindowObserver` for a given process ID and event channel.
     pub async fn start(
         pid: accessibility_sys::pid_t,
         event_tx: EventTx,
@@ -73,7 +73,7 @@ impl MacOSObserver {
     }
 }
 
-impl Drop for MacOSObserver {
+impl Drop for MacOSWindowObserver {
     fn drop(&mut self) {
         if !self.stopped {
             // Unregister the observer in case the `stop` method was not called.
