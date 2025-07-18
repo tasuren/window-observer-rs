@@ -41,7 +41,7 @@ impl EventInterpreter {
         }
     }
 
-    fn dispatch_focused(&mut self, window_element: AXUIElement) {
+    fn dispatch_focus_change(&mut self, window_element: AXUIElement) {
         // If focused window is changed, we should also dispatch the unfocused event.
         if let Some(element) = self
             .state
@@ -57,7 +57,7 @@ impl EventInterpreter {
         self.dispatch(Event::Focused { window });
     }
 
-    fn dispatch_unfocused(&mut self, window_element: AXUIElement) {
+    fn dispatch_maybe_unfocused(&mut self, window_element: AXUIElement) {
         if self
             .state
             .previous_focused_window
@@ -65,10 +65,10 @@ impl EventInterpreter {
             .is_some_and(|e| *e == window_element)
         {
             self.state.previous_focused_window = None;
-        }
 
-        let window = create_window_unchecked(window_element);
-        self.dispatch(Event::Unfocused { window });
+            let window = create_window_unchecked(window_element);
+            self.dispatch(Event::Unfocused { window });
+        }
     }
 
     fn on_application_activated_or_deactivated(
@@ -76,7 +76,7 @@ impl EventInterpreter {
         is_deactivated: bool,
     ) -> Result<(), accessibility::Error> {
         if !is_deactivated {
-            self.dispatch_focused(self.app_element.focused_window()?);
+            self.dispatch_focus_change(self.app_element.focused_window()?);
         };
 
         for element in self.app_element.windows()?.iter() {
@@ -88,14 +88,7 @@ impl EventInterpreter {
                 // If previously focused window is the same as the current element,
                 // it means that the window is being unfocused because
                 // the application is deactivated.
-                if self
-                    .state
-                    .previous_focused_window
-                    .as_ref()
-                    .is_some_and(|e| *e == *element)
-                {
-                    self.dispatch_unfocused(element.clone());
-                }
+                self.dispatch_maybe_unfocused(element.clone());
             } else {
                 self.dispatch(Event::Foregrounded { window });
             }
@@ -168,19 +161,34 @@ impl EventInterpreter {
         self.dispatch(Event::Resized { window });
     }
 
-    pub fn on_focused_window_changed(&mut self, element: AXUIElement) {
-        self.dispatch_focused(element.clone());
+    pub fn on_focused_window_changed(
+        &mut self,
+        element: AXUIElement,
+    ) -> Result<(), accessibility::Error> {
+        for maybe_backgrounded in self.app_element.windows()?.iter() {
+            if *maybe_backgrounded != element {
+                let window = create_window_unchecked(maybe_backgrounded.clone());
+                self.dispatch(Event::Backgrounded { window });
+            }
+        }
+
+        self.dispatch_focus_change(element.clone());
+
         let window = create_window_unchecked(element);
         self.dispatch(Event::Foregrounded { window });
+
+        Ok(())
     }
 
-    pub fn on_window_miniaturized(&self, element: AXUIElement) {
-        let window = create_window_unchecked(element);
+    pub fn on_window_miniaturized(&mut self, element: AXUIElement) {
+        let window = create_window_unchecked(element.clone());
         self.dispatch(Event::Backgrounded { window });
+
+        self.dispatch_maybe_unfocused(element);
     }
 
     pub fn on_window_deminimized(&mut self, element: AXUIElement) {
-        self.dispatch_focused(element.clone());
+        self.dispatch_focus_change(element.clone());
         let window = create_window_unchecked(element);
         self.dispatch(Event::Foregrounded { window });
     }
@@ -210,7 +218,7 @@ impl EventInterpreter {
                 self.on_application_deactivated()?;
             }
             accessibility_sys::kAXFocusedWindowChangedNotification => {
-                self.on_focused_window_changed(element);
+                self.on_focused_window_changed(element)?;
             }
             accessibility_sys::kAXWindowMiniaturizedNotification => {
                 self.on_window_miniaturized(element);
@@ -254,11 +262,11 @@ pub(crate) fn for_each_notification_event<E>(
     }
 
     if event_filter.moved {
-        f(accessibility_sys::kAXMovedNotification)?;
+        f(accessibility_sys::kAXWindowMovedNotification)?;
     }
 
     if event_filter.resized {
-        f(accessibility_sys::kAXResizedNotification)?;
+        f(accessibility_sys::kAXWindowResizedNotification)?;
     }
 
     if event_filter.created {
