@@ -144,6 +144,8 @@ pub enum Event {
 pub type EventResult = Result<Event, platform_impl::PlatformError>;
 /// A type alias for the window event transmission channel.
 pub type EventTx = tokio::sync::mpsc::UnboundedSender<EventResult>;
+/// A type alias for the window event reception channel.
+pub type EventRx = tokio::sync::mpsc::UnboundedReceiver<EventResult>;
 
 /// Observes window events.
 pub struct WindowObserver(PlatformWindowObserver);
