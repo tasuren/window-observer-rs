@@ -37,9 +37,7 @@ async fn main() {
         .expect("Please give me the env `PID` of application that has window.");
 
     let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel();
-    let mut event_filter = window_observer::EventFilter::empty();
-    event_filter.focused = true;
-    event_filter.unfocused = true;
+    let event_filter = window_observer::EventFilter::all();
 
     let _window_observer = WindowObserver::start(pid, event_tx, event_filter)
         .await

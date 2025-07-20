@@ -14,6 +14,7 @@ fn handle_events(
         if let Some(hwnd) = event.window_handle() {
             let hwnd = Foundation::HWND(hwnd.as_ptr() as _);
             let Some(window) = get_window(hwnd).map(|w| w.into_inner()) else {
+                // If hwnd is not valid window, continue;
                 continue;
             };
 

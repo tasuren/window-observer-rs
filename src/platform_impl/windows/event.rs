@@ -1,4 +1,4 @@
-use window_getter::platform_impl::PlatformWindow;
+use window_getter::{platform_impl::PlatformWindow, WindowId};
 use wineventhook::{
     MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEvent, WindowEventType,
 };
@@ -119,6 +119,10 @@ impl EventInterpreter {
                     self.dispatch(Event::Resized { window });
                 }
             }
+            ObjectWindowEvent::Create => self.dispatch(Event::Created { window }),
+            ObjectWindowEvent::Destroy => self.dispatch(Event::Closed {
+                window_id: WindowId::new(window.inner().hwnd()),
+            }),
             _ => return Ok(()),
         };
 
