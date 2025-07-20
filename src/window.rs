@@ -23,8 +23,8 @@ pub struct Position {
 impl From<Bounds> for Size {
     fn from(value: Bounds) -> Self {
         Size {
-            width: value.width(),
-            height: value.height(),
+            width: value.width,
+            height: value.height,
         }
     }
 }
@@ -32,8 +32,8 @@ impl From<Bounds> for Size {
 impl From<Bounds> for Position {
     fn from(value: Bounds) -> Self {
         Position {
-            x: value.x(),
-            y: value.y(),
+            x: value.x,
+            y: value.y,
         }
     }
 }
@@ -73,12 +73,11 @@ impl Window {
         }
         #[cfg(target_os = "windows")]
         {
-            Ok(window_getter::Bounds::new(
-                self.0
-                    .visible_bounds()
-                    .map_err(|e| Error::PlatformSpecificError(e.into()))?,
-            )
-            .into())
+            Ok(self
+                .0
+                .visible_bounds()
+                .map_err(|e| Error::PlatformSpecificError(e.into()))?
+                .into())
         }
     }
 
@@ -90,12 +89,11 @@ impl Window {
         }
         #[cfg(target_os = "windows")]
         {
-            Ok(window_getter::Bounds::new(
-                self.0
-                    .visible_bounds()
-                    .map_err(|e| Error::PlatformSpecificError(e.into()))?,
-            )
-            .into())
+            Ok(self
+                .0
+                .visible_bounds()
+                .map_err(|e| Error::PlatformSpecificError(e.into()))?
+                .into())
         }
     }
 
@@ -117,9 +115,11 @@ impl Window {
     /// Retrieves the unique identifier of the window.
     ///
     /// # Platform-specific
-    /// - **macOS:** It will return a `CGWindowID` which is a unique identifier for the window.
+    /// - **macOS:** It will return a [`CGWindowID`][CGWindowID] which is wrapped by [`window_getter::WindowId`].
     ///   **Warning:** It uses the private API `_AXUIElementGetWindow` of macOS.
     /// - **windows:** It will always return [`Ok`].
+    ///
+    /// [CGWindowID]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     #[cfg(feature = "macos-private-api")]
     pub fn id(&self) -> Result<window_getter::WindowId, Error> {
         #[cfg(target_os = "macos")]
@@ -134,6 +134,9 @@ impl Window {
 
     /// Retrieves the `Window` implementation by [window-getter-rs][window-getter-rs].
     ///
+    /// # Panics
+    /// On macOS, if there is no window environment, it will panic.
+    ///
     /// [window-getter-rs]: https://github.com/tasuren/window-getter-rs
     #[cfg(feature = "macos-private-api")]
     pub fn create_window_getter_window(&self) -> Result<Option<window_getter::Window>, Error> {
@@ -143,8 +146,7 @@ impl Window {
         }
         #[cfg(target_os = "windows")]
         {
-            let window =
-                unsafe { window_getter::platform_impl::PlatformWindow::new(self.inner().hwnd()) };
+            let window = window_getter::platform_impl::PlatformWindow::new(self.inner().hwnd());
             Ok(Some(window_getter::Window::new(window)))
         }
     }
