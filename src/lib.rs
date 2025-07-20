@@ -119,9 +119,21 @@ pub enum Event {
     Foregrounded { window: Window },
     /// The window was backgrounded. It is opposite of [`Event::Foregrounded`].
     Backgrounded { window: Window },
-    /// The windows was focused.
+    /// The window was focused.
+    ///
+    /// # Platform-specific
+    /// - **windows:** This event is same as [`Event::Foregrounded`].
+    ///   So this event and `Foregrounded` event are always dispatched together.
+    /// - **macOS:** On macOS, a window does not lose focus even when miniaturized.
+    ///   Therefore, this event will not be dispatched when the window is deminiaturized.
     Focused { window: Window },
     /// The window was unfocused.
+    ///
+    /// # Platform-specific
+    /// - **windows:** This event is same as [`Event::Backgrounded`].
+    ///   So this event and `Backgrounded` event are always dispatched together.
+    /// - **macOS:** On macOS, a window does not lose focus even when miniaturized.
+    ///   Therefore, this event will not be dispatched when the window is miniaturized
     Unfocused { window: Window },
     /// The window was closed.
     Closed { window_id: window_getter::WindowId },
