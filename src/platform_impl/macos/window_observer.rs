@@ -6,7 +6,7 @@ use super::{
     event_loop::{event_loop, get_event_loop, ObserverSource},
 };
 use crate::{
-    platform_impl::macos::event::{for_each_notification_event, EventInterpreter},
+    platform_impl::macos::event_interpreter::{for_each_notification_event, EventInterpreter},
     Error, EventFilter, EventTx,
 };
 

@@ -8,7 +8,7 @@ pub mod window;
 pub use ::tokio;
 pub use window::Window;
 
-use crate::platform_impl::windows::observer::WindowsWindowObserver;
+use crate::platform_impl::PlatformWindowObserver;
 
 /// Represents errors that can occur in the library.
 #[non_exhaustive]
@@ -146,7 +146,7 @@ pub type EventResult = Result<Event, platform_impl::PlatformError>;
 pub type EventTx = tokio::sync::mpsc::UnboundedSender<EventResult>;
 
 /// Observes window events.
-pub struct WindowObserver(WindowsWindowObserver);
+pub struct WindowObserver(PlatformWindowObserver);
 
 impl WindowObserver {
     /// Creates a new [`WindowObserver`] for a given process ID and event channel
@@ -160,7 +160,7 @@ impl WindowObserver {
         let pid = pid as i32;
 
         Ok(Self(
-            WindowsWindowObserver::start(pid, event_tx, event_filter).await?,
+            PlatformWindowObserver::start(pid, event_tx, event_filter).await?,
         ))
     }
 
@@ -181,7 +181,7 @@ impl WindowObserver {
     }
 
     /// Returns underlying platform-specific observer.
-    pub fn inner(&self) -> &WindowsWindowObserver {
+    pub fn inner(&self) -> &PlatformWindowObserver {
         &self.0
     }
 }

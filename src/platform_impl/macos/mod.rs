@@ -3,7 +3,7 @@
 pub mod binding_ax_function;
 pub mod binding_ax_observer;
 pub mod error;
-mod event;
+mod event_interpreter;
 mod event_loop;
 pub mod window;
 pub mod window_observer;
