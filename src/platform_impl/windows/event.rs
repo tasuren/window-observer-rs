@@ -96,7 +96,7 @@ impl EventInterpreter {
 
                 // Check if the position has changed.
                 // `LocationChange` can be triggered by both position and size changes.
-                let current_pos: Position = visible_bounds.into();
+                let current_pos: Position = visible_bounds.clone().into();
                 let previous_pos = self.state.previous_pos.replace(current_pos.clone());
 
                 if previous_pos.is_none()

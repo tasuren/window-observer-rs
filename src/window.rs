@@ -1,3 +1,5 @@
+use window_getter::Bounds;
+
 use crate::{platform_impl::PlatformWindow, Error};
 
 /// A wrapper around platform-specific window implementations.
@@ -82,9 +84,11 @@ impl Window {
     /// Retrieves the unique identifier of the window.
     ///
     /// # Platform-specific
-    /// - **macOS:** It will return a `CGWindowID` which is a unique identifier for the window.
+    /// - **macOS:** It will return a [`CGWindowID`][CGWindowID] which is wrapped by [`window_getter::WindowId`].
     ///   **Warning:** It uses the private API `_AXUIElementGetWindow` of macOS.
     /// - **windows:** It will always return [`Ok`].
+    ///
+    /// [CGWindowID]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     #[cfg(feature = "macos-private-api")]
     pub fn id(&self) -> Result<window_getter::WindowId, Error> {
         #[cfg(target_os = "macos")]
@@ -99,6 +103,9 @@ impl Window {
 
     /// Retrieves the `Window` implementation by [window-getter-rs][window-getter-rs].
     ///
+    /// # Panics
+    /// On macOS, if there is no window environment, it will panic.
+    ///
     /// [window-getter-rs]: https://github.com/tasuren/window-getter-rs
     ///
     /// # Platform-specific
@@ -111,15 +118,14 @@ impl Window {
         }
         #[cfg(target_os = "windows")]
         {
-            let hwnd = self.inner().hwnd();
-            let window = unsafe { window_getter::platform_impl::PlatformWindow::new(hwnd) };
+            let window = window_getter::platform_impl::PlatformWindow::new(self.inner().hwnd());
             Ok(Some(window_getter::Window::new(window)))
         }
     }
 }
 
 /// Represents the size of a window.
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Size {
     /// The width of the window.
     pub width: f64,
@@ -128,7 +134,7 @@ pub struct Size {
 }
 
 /// Represents the position of a window.
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Position {
     /// The x-coordinate of the window.
     pub x: f64,
@@ -136,26 +142,20 @@ pub struct Position {
     pub y: f64,
 }
 
-#[cfg(target_os = "windows")]
-mod platform_bounds_conversion {
-    use super::{Position, Size};
-    use window_getter::platform_impl::PlatformBounds;
-
-    impl From<PlatformBounds> for Size {
-        fn from(value: PlatformBounds) -> Self {
-            Size {
-                width: value.width() as f64,
-                height: value.height() as f64,
-            }
+impl From<Bounds> for Size {
+    fn from(value: Bounds) -> Self {
+        Size {
+            width: value.width,
+            height: value.height,
         }
     }
+}
 
-    impl From<PlatformBounds> for Position {
-        fn from(value: PlatformBounds) -> Self {
-            Position {
-                x: value.x() as f64,
-                y: value.y() as f64,
-            }
+impl From<Bounds> for Position {
+    fn from(value: Bounds) -> Self {
+        Position {
+            x: value.x,
+            y: value.y,
         }
     }
 }
