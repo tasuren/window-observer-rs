@@ -162,7 +162,8 @@ impl EventInterpreter {
 
     pub fn on_window_miniaturized(&mut self, element: AXUIElement) {
         let window = create_window_unchecked(element.clone());
-        self.dispatch(Some(window), Event::Hidden);
+        self.dispatch(Some(window.clone()), Event::Hidden);
+        self.dispatch(Some(window), Event::Backgrounded);
     }
 
     pub fn on_window_deminimized(&mut self, element: AXUIElement) {
@@ -245,6 +246,7 @@ pub(crate) fn for_each_notification_event<E>(
     if event_filter.backgrounded {
         f(accessibility_sys::kAXApplicationDeactivatedNotification)?;
         f(accessibility_sys::kAXFocusedWindowChangedNotification)?;
+        f(accessibility_sys::kAXWindowMiniaturizedNotification)?;
     }
 
     if event_filter.hide {
