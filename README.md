@@ -36,15 +36,19 @@ First release todos:
   - [x] Resize detection
   - [x] Move detection
   - [x] Foreground detection
-  - [x] Resize detection with information such as width, height
-  - [x] Move detection with information such as x, y.
+  - [x] Backgrounded detection
+  - [x] Hidden detection
+  - [x] Showed detection
+  - [x] Focus switching detection
   - [x] Get the window title
 - [x] Windows
   - [x] Resize detection
   - [x] Move detectio
   - [x] Foreground detectionn
-  - [x] Resize detection with information such as width, height
-  - [x] Move detection with information such as x, y.
+  - [x] Backgrounded detection
+  - [x] Hidden detection
+  - [x] Showed detection
+  - [x] Focus switching detection
   - [x] Get the window title
 - [ ] Linux?
   I have no plans to make this at this time due to my inexperienced knowledge about Linux.  
