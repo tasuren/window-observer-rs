@@ -3,7 +3,7 @@ use window_getter::platform_impl::get_window;
 use windows::Win32::Foundation;
 use wineventhook::{raw_event, WindowEventHook};
 
-use super::{event::EventInterpreter, PlatformError};
+use super::{event_interpreter::EventInterpreter, PlatformError};
 use crate::{EventFilter, EventTx};
 
 fn handle_events(
