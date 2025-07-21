@@ -249,7 +249,7 @@ pub(crate) fn for_each_notification_event<E>(
         f(accessibility_sys::kAXWindowMiniaturizedNotification)?;
     }
 
-    if event_filter.hide {
+    if event_filter.hidden {
         f(accessibility_sys::kAXWindowMiniaturizedNotification)?;
     }
 

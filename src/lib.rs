@@ -59,8 +59,8 @@ pub struct EventFilter {
     pub resized: bool,
     /// Whether to observe [`Event::Moved`] events.
     pub moved: bool,
-    /// Whether to observe [`Event::Hide`] events.
-    pub hide: bool,
+    /// Whether to observe [`Event::Hidden`] events.
+    pub hidden: bool,
     /// Whether to observe [`Event::Showed`] events.
     pub showed: bool,
     /// Whether to observe [`Event::Closed`] events.
@@ -78,7 +78,7 @@ impl EventFilter {
             created: true,
             resized: true,
             moved: true,
-            hide: true,
+            hidden: true,
             showed: true,
             closed: true,
         }
@@ -97,7 +97,7 @@ impl EventFilter {
             || matches!(event, Event::Created) && self.created
             || matches!(event, Event::Resized) && self.resized
             || matches!(event, Event::Moved) && self.moved
-            || matches!(event, Event::Hidden) && self.hide
+            || matches!(event, Event::Hidden) && self.hidden
             || matches!(event, Event::Showed) && self.showed
             || matches!(event, Event::Closed { .. }) && self.closed
     }
