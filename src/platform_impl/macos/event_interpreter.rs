@@ -1,6 +1,7 @@
+use crate::{
+    platform_impl::PlatformWindow, Event, EventFilter, EventTx, MaybeWindowAvailable, Window,
+};
 use accessibility::{AXUIElement, AXUIElementAttributes};
-
-use crate::{platform_impl::PlatformWindow, Event, EventFilter, EventTx, Window};
 
 #[inline]
 fn create_window_unchecked(element: AXUIElement) -> Window {
@@ -33,9 +34,15 @@ impl EventInterpreter {
         }
     }
 
-    fn dispatch(&self, event: Event) {
+    fn dispatch(&self, window: Option<Window>, event: Event) {
         if self.event_filter.should_dispatch(&event) {
-            let _ = self.event_tx.send(Ok(event));
+            let payload = if let Some(window) = window {
+                MaybeWindowAvailable::Available { window, event }
+            } else {
+                MaybeWindowAvailable::NotAvailable { event }
+            };
+
+            let _ = self.event_tx.send(Ok(payload));
         }
     }
 
@@ -47,9 +54,9 @@ impl EventInterpreter {
             let window = create_window_unchecked(element.clone());
 
             if is_deactivated {
-                self.dispatch(Event::Backgrounded { window });
+                self.dispatch(Some(window), Event::Backgrounded);
             } else {
-                self.dispatch(Event::Foregrounded { window });
+                self.dispatch(Some(window), Event::Foregrounded);
             }
         }
 
@@ -82,7 +89,7 @@ impl EventInterpreter {
 
     pub fn on_window_created(&mut self, element: AXUIElement) -> Result<(), accessibility::Error> {
         let window = create_window_unchecked(element);
-        self.dispatch(Event::Created { window });
+        self.dispatch(Some(window), Event::Created);
 
         // Track the windows currently known to the application.
         #[cfg(feature = "macos-private-api")]
@@ -106,7 +113,7 @@ impl EventInterpreter {
             let event = Event::Closed {
                 window_id: window_id.into(),
             };
-            self.dispatch(event);
+            self.dispatch(None, event);
         }
 
         Ok(())
@@ -114,12 +121,12 @@ impl EventInterpreter {
 
     pub fn on_window_moved(&self, element: AXUIElement) {
         let window = create_window_unchecked(element);
-        self.dispatch(Event::Moved { window });
+        self.dispatch(Some(window), Event::Moved);
     }
 
     pub fn on_window_resized(&self, element: AXUIElement) {
         let window = create_window_unchecked(element);
-        self.dispatch(Event::Resized { window });
+        self.dispatch(Some(window), Event::Resized);
     }
 
     pub fn on_focused_window_changed(
@@ -129,12 +136,12 @@ impl EventInterpreter {
         for maybe_backgrounded in self.app_element.windows()?.iter() {
             if *maybe_backgrounded != element {
                 let window = create_window_unchecked(maybe_backgrounded.clone());
-                self.dispatch(Event::Backgrounded { window });
+                self.dispatch(Some(window), Event::Backgrounded);
             }
         }
 
         let window = create_window_unchecked(element.clone());
-        self.dispatch(Event::Foregrounded { window });
+        self.dispatch(Some(window), Event::Foregrounded);
 
         // If focused window is changed, we should also dispatch the unfocused event.
         if let Some(previous_window_element) = self
@@ -144,23 +151,23 @@ impl EventInterpreter {
             .and_then(|e| (e != element).then_some(e))
         {
             let window = create_window_unchecked(previous_window_element);
-            self.dispatch(Event::Unfocused { window });
+            self.dispatch(Some(window), Event::Unfocused);
         }
 
         let window = create_window_unchecked(element);
-        self.dispatch(Event::Focused { window });
+        self.dispatch(Some(window), Event::Focused);
 
         Ok(())
     }
 
     pub fn on_window_miniaturized(&mut self, element: AXUIElement) {
         let window = create_window_unchecked(element.clone());
-        self.dispatch(Event::Backgrounded { window });
+        self.dispatch(Some(window), Event::Backgrounded);
     }
 
     pub fn on_window_deminimized(&mut self, element: AXUIElement) {
         let window = create_window_unchecked(element);
-        self.dispatch(Event::Foregrounded { window });
+        self.dispatch(Some(window), Event::Foregrounded);
     }
 
     fn dispatch_ax_notification(

@@ -93,32 +93,32 @@ impl EventFilter {
     }
 
     pub(crate) fn should_dispatch(&self, event: &Event) -> bool {
-        matches!(event, Event::Foregrounded { .. }) && self.foregrounded
-            || matches!(event, Event::Backgrounded { .. }) && self.backgrounded
-            || matches!(event, Event::Focused { .. }) && self.focused
-            || matches!(event, Event::Unfocused { .. }) && self.unfocused
-            || matches!(event, Event::Created { .. }) && self.created
-            || matches!(event, Event::Resized { .. }) && self.resized
-            || matches!(event, Event::Moved { .. }) && self.moved
+        matches!(event, Event::Foregrounded) && self.foregrounded
+            || matches!(event, Event::Backgrounded) && self.backgrounded
+            || matches!(event, Event::Focused) && self.focused
+            || matches!(event, Event::Unfocused) && self.unfocused
+            || matches!(event, Event::Created) && self.created
+            || matches!(event, Event::Resized) && self.resized
+            || matches!(event, Event::Moved) && self.moved
             || matches!(event, Event::Closed { .. }) && self.closed
     }
 }
 
 /// Represents events that can be observed on a window.
-#[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Event {
     /// The window was created.
-    Created { window: Window },
+    Created,
     /// The window was resized.
-    Resized { window: Window },
+    Resized,
     /// The window was moved.
-    Moved { window: Window },
+    Moved,
     /// The window was brought to the foreground.
     /// This event does not mean the window has gained input focus.
-    Foregrounded { window: Window },
+    Foregrounded,
     /// The window was backgrounded. It is opposite of [`Event::Foregrounded`].
-    Backgrounded { window: Window },
+    Backgrounded,
     /// The window was focused.
     ///
     /// # Platform-specific
@@ -126,7 +126,7 @@ pub enum Event {
     ///   So this event and `Foregrounded` event are always dispatched together.
     /// - **macOS:** On macOS, a window does not lose focus even when miniaturized.
     ///   Therefore, this event will not be dispatched when the window is deminiaturized.
-    Focused { window: Window },
+    Focused,
     /// The window was unfocused.
     ///
     /// # Platform-specific
@@ -134,14 +134,24 @@ pub enum Event {
     ///   So this event and `Backgrounded` event are always dispatched together.
     /// - **macOS:** On macOS, a window does not lose focus even when miniaturized.
     ///   Therefore, this event will not be dispatched when the window is miniaturized
-    Unfocused { window: Window },
+    Unfocused,
     /// The window was closed.
     Closed { window_id: window_getter::WindowId },
 }
 
+/// Represents a window that may or may not be available.
+#[derive(Debug, Clone, PartialEq)]
+pub enum MaybeWindowAvailable {
+    /// The window is available.
+    Available { window: Window, event: Event },
+    /// The window is not available.
+    /// This can happen when the window is closed.
+    NotAvailable { event: Event },
+}
+
 /// A type alias for the result of an event.
 /// `Err` means that the event could not be processed, and `Ok` contains the event.
-pub type EventResult = Result<Event, platform_impl::PlatformError>;
+pub type EventResult = Result<MaybeWindowAvailable, platform_impl::PlatformError>;
 /// A type alias for the window event transmission channel.
 pub type EventTx = tokio::sync::mpsc::UnboundedSender<EventResult>;
 /// A type alias for the window event reception channel.

@@ -1,32 +1,24 @@
-use window_observer::{self, Event, WindowObserver};
+use window_observer::{self, Event, MaybeWindowAvailable, WindowObserver};
 
-fn print_event(event: Event) {
+fn print_event(event: MaybeWindowAvailable) {
     match event {
-        Event::Foregrounded { window } => {
-            println!("Window {:?}: Foregrounded", window.title())
+        MaybeWindowAvailable::Available { window, event } => {
+            println!("\n{event:?}");
+            println!("\tWindow title: {:?}", window.title());
+
+            match event {
+                Event::Moved => {
+                    println!("\tWindow position: {:?}", window.position());
+                }
+                Event::Resized => {
+                    println!("\tWindow size: {:?}", window.size());
+                }
+                _ => {}
+            }
         }
-        Event::Focused { window } => {
-            println!("Window {:?}: Focused", window.title())
+        MaybeWindowAvailable::NotAvailable { event } => {
+            println!("\n{event:?}");
         }
-        Event::Unfocused { window } => {
-            println!("Window {:?}: Unfocused", window.title())
-        }
-        Event::Moved { window } => {
-            println!("Window {:?}: Moved {:?}", window.title(), window.position())
-        }
-        Event::Resized { window } => {
-            println!("Window {:?}: Resized {:?}", window.title(), window.size())
-        }
-        Event::Backgrounded { window } => {
-            println!("Window {:?}: Backgrounded", window.title())
-        }
-        Event::Created { window } => {
-            println!("Window {:?}: Created", window.title())
-        }
-        Event::Closed { window_id } => {
-            println!("Window {window_id:?}: Closed")
-        }
-        _ => {}
     };
 }
 
