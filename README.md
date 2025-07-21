@@ -33,26 +33,38 @@ async fn main() {
 ## ToDo
 First release todos:
 - [x] macOS
-  - [x] Resize detection
-  - [x] Move detection
-  - [x] Foreground detection
-  - [x] Backgrounded detection
-  - [x] Hidden detection
-  - [x] Showed detection
-  - [x] Focus switching detection
-  - [x] Get the window title
+  - [x] Resized
+  - [x] Moved
+  - [x] Foregrounded
+  - [x] Backgrounded
+  - [x] Hidden
+  - [x] Showed
+  - [x] Focused
+  - [x] Unfocused
+  - [x] Closed
 - [x] Windows
-  - [x] Resize detection
-  - [x] Move detectio
-  - [x] Foreground detectionn
-  - [x] Backgrounded detection
-  - [x] Hidden detection
-  - [x] Showed detection
-  - [x] Focus switching detection
-  - [x] Get the window title
-- [ ] Linux?
+  - [x] Resized
+  - [x] Moved
+  - [x] Foregrounded
+  - [x] Backgrounded
+  - [x] Hidden
+  - [x] Showed
+  - [x] Focused
+  - [x] Unfocused
+  - [x] Closed
+- [ ] Linux?  
   I have no plans to make this at this time due to my inexperienced knowledge about Linux.  
   But I'd be happy to receive pull requests.
+
+  - [ ] Resized
+  - [ ] Moved
+  - [ ] Foregrounded
+  - [ ] Backgrounded
+  - [ ] Hidden
+  - [ ] Showed
+  - [ ] Focused
+  - [ ] Unfocused
+  - [ ] Closed
 
 ## Acknowledgements
 - Windows event handler: [wineventhook-rs](https://github.com/OpenByteDev/wineventhook-rs/)
