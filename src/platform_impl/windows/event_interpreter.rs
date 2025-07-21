@@ -115,6 +115,8 @@ impl EventInterpreter {
                 }
             }
             ObjectWindowEvent::Create => self.dispatch(Some(window), Event::Created),
+            ObjectWindowEvent::Hide => self.dispatch(Some(window), Event::Hidden),
+            ObjectWindowEvent::Show => self.dispatch(Some(window), Event::Showed),
             ObjectWindowEvent::Destroy => self.dispatch(
                 None,
                 Event::Closed {

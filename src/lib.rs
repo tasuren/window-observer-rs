@@ -59,6 +59,10 @@ pub struct EventFilter {
     pub resized: bool,
     /// Whether to observe [`Event::Moved`] events.
     pub moved: bool,
+    /// Whether to observe [`Event::Hide`] events.
+    pub hide: bool,
+    /// Whether to observe [`Event::Showed`] events.
+    pub showed: bool,
     /// Whether to observe [`Event::Closed`] events.
     pub closed: bool,
 }
@@ -74,22 +78,15 @@ impl EventFilter {
             created: true,
             resized: true,
             moved: true,
+            hide: true,
+            showed: true,
             closed: true,
         }
     }
 
     /// Creates a new `EventFilter` with no events enabled.
     pub fn empty() -> Self {
-        Self {
-            foregrounded: false,
-            backgrounded: false,
-            focused: false,
-            unfocused: false,
-            created: false,
-            resized: false,
-            moved: false,
-            closed: false,
-        }
+        Default::default()
     }
 
     pub(crate) fn should_dispatch(&self, event: &Event) -> bool {
@@ -100,6 +97,8 @@ impl EventFilter {
             || matches!(event, Event::Created) && self.created
             || matches!(event, Event::Resized) && self.resized
             || matches!(event, Event::Moved) && self.moved
+            || matches!(event, Event::Hidden) && self.hide
+            || matches!(event, Event::Showed) && self.showed
             || matches!(event, Event::Closed { .. }) && self.closed
     }
 }
@@ -135,6 +134,10 @@ pub enum Event {
     /// - **macOS:** On macOS, a window does not lose focus even when miniaturized.
     ///   Therefore, this event will not be dispatched when the window is miniaturized
     Unfocused,
+    /// The window was hidden.
+    Hidden,
+    /// The window was showed.
+    Showed,
     /// The window was closed.
     Closed { window_id: window_getter::WindowId },
 }
