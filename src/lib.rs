@@ -6,7 +6,7 @@ pub mod platform_impl;
 pub mod window;
 
 pub use ::tokio;
-pub use window::Window;
+pub use window::{Position, Size, Window};
 
 use crate::platform_impl::PlatformWindowObserver;
 
