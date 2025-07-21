@@ -6,7 +6,7 @@ use wineventhook::{
 use crate::{
     platform_impl::PlatformError,
     window::{Position, Size},
-    Event, EventFilter, EventTx, Window,
+    Event, EventFilter, EventTx, MaybeWindowAvailable, Window,
 };
 
 #[derive(Debug, Default, Clone)]
@@ -34,9 +34,18 @@ impl EventInterpreter {
         }
     }
 
-    fn dispatch(&self, event: Event) {
+    fn dispatch(&self, window: Option<PlatformWindow>, event: Event) {
         if self.event_filter.should_dispatch(&event) {
-            let _ = self.event_tx.send(Ok(event));
+            let payload = if let Some(window) = window {
+                MaybeWindowAvailable::Available {
+                    window: Window::new(window),
+                    event,
+                }
+            } else {
+                MaybeWindowAvailable::NotAvailable { event }
+            };
+
+            let _ = self.event_tx.send(Ok(payload));
         }
     }
 
@@ -47,15 +56,8 @@ impl EventInterpreter {
             if before_foreground.hwnd() != window.hwnd()
                 && before_foreground.owner_pid()? == self.pid
             {
-                let event = Event::Backgrounded {
-                    window: Window::new(before_foreground),
-                };
-                self.dispatch(event);
-
-                let event = Event::Unfocused {
-                    window: Window::new(before_foreground),
-                };
-                self.dispatch(event);
+                self.dispatch(Some(before_foreground), Event::Backgrounded);
+                self.dispatch(Some(before_foreground), Event::Unfocused);
             }
         }
 
@@ -67,13 +69,10 @@ impl EventInterpreter {
         window: PlatformWindow,
         event: SystemWindowEvent,
     ) -> Result<(), PlatformError> {
-        let window = Window::new(window);
         match event {
             SystemWindowEvent::Foreground => {
-                self.dispatch(Event::Foregrounded {
-                    window: window.clone(),
-                });
-                self.dispatch(Event::Focused { window });
+                self.dispatch(Some(window), Event::Foregrounded);
+                self.dispatch(Some(window), Event::Focused);
             }
             _ => return Ok(()),
         };
@@ -86,11 +85,9 @@ impl EventInterpreter {
         window: PlatformWindow,
         event: ObjectWindowEvent,
     ) -> Result<(), PlatformError> {
-        let window = Window::new(window);
-
         match event {
             ObjectWindowEvent::LocationChange => {
-                let Ok(visible_bounds) = window.inner().visible_bounds() else {
+                let Ok(visible_bounds) = window.visible_bounds() else {
                     return Ok(());
                 };
 
@@ -104,9 +101,7 @@ impl EventInterpreter {
                         .as_ref()
                         .is_some_and(|previous_pos| *previous_pos != current_pos)
                 {
-                    self.dispatch(Event::Moved {
-                        window: window.clone(),
-                    });
+                    self.dispatch(Some(window), Event::Moved);
                 }
 
                 // Check if the size has changed.
@@ -116,13 +111,16 @@ impl EventInterpreter {
                 if previous_size.is_none()
                     || previous_size.is_some_and(|previous_size| previous_size != current_size)
                 {
-                    self.dispatch(Event::Resized { window });
+                    self.dispatch(Some(window), Event::Resized);
                 }
             }
-            ObjectWindowEvent::Create => self.dispatch(Event::Created { window }),
-            ObjectWindowEvent::Destroy => self.dispatch(Event::Closed {
-                window_id: WindowId::new(window.inner().hwnd()),
-            }),
+            ObjectWindowEvent::Create => self.dispatch(Some(window), Event::Created),
+            ObjectWindowEvent::Destroy => self.dispatch(
+                None,
+                Event::Closed {
+                    window_id: WindowId::new(window.hwnd()),
+                },
+            ),
             _ => return Ok(()),
         };
 
