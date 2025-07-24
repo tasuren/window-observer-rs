@@ -25,13 +25,24 @@ pub(crate) struct EventInterpreter {
 }
 
 impl EventInterpreter {
-    pub fn new(app_element: AXUIElement, event_tx: EventTx, event_filter: EventFilter) -> Self {
-        Self {
+    pub fn new(
+        app_element: AXUIElement,
+        event_tx: EventTx,
+        event_filter: EventFilter,
+    ) -> Result<Self, accessibility::Error> {
+        let mut interpreter = Self {
             app_element,
             event_tx,
             event_filter,
             state: Default::default(),
+        };
+
+        #[cfg(feature = "macos-private-api")]
+        if event_filter.closed {
+            interpreter.refresh_window_ids_state()?;
         }
+
+        Ok(interpreter)
     }
 
     fn dispatch(&self, window: Option<Window>, event: Event) {

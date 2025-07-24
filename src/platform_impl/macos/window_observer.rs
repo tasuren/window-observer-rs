@@ -30,7 +30,7 @@ impl MacOSWindowObserver {
 
         // Instantiate `AXObserver`.
         let mut event_interpreter =
-            EventInterpreter::new(AXUIElement::application(pid), event_tx, event_filter);
+            EventInterpreter::new(AXUIElement::application(pid), event_tx, event_filter)?;
         let callback = move |element: AXUIElement, notification: String| {
             event_interpreter.interpret_ax_notification(element, &notification);
         };
