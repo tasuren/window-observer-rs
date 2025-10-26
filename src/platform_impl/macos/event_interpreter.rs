@@ -30,7 +30,7 @@ impl EventInterpreter {
         event_tx: EventTx,
         event_filter: EventFilter,
     ) -> Result<Self, accessibility::Error> {
-        let mut interpreter = Self {
+        let interpreter = Self {
             app_element,
             event_tx,
             event_filter,
