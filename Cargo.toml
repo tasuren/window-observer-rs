@@ -15,9 +15,9 @@ default = []
 macos-private-api = []
 
 [dependencies]
-bitflags = "2.9.1"
-thiserror = "1.0.69"
-tokio = { version = "1.45.1", default-features = false, features = ["sync"] }
+bitflags = "2.10.0"
+thiserror = "2.0.17"
+tokio = { version = "1.48.0", default-features = false, features = ["sync"] }
 window-getter = "0.1.2"
 
 [target.'cfg(target_os = "windows")'.dependencies.windows]
@@ -35,17 +35,17 @@ wineventhook = "0.9.1"
 accessibility = "0.2.0"
 accessibility-sys = "0.2.0"
 core-foundation = "0.10.0"
-objc2 = "0.6.1"
+objc2 = "0.6.3"
 
 [target.'cfg(target_os = "macos")'.dependencies.objc2-foundation]
-version = "0.3.1"
+version = "0.3.2"
 default-features = false
 features = ["alloc", "NSNotification"]
 
 [target.'cfg(target_os = "macos")'.dependencies.objc2-core-foundation]
-version = "0.3.1"
+version = "0.3.2"
 default-features = false
 features = ["CFString", "CFRunLoop"]
 
 [dev-dependencies]
-tokio = { version = "1.45.1", features = ["rt", "macros", "rt-multi-thread"] }
+tokio = { version = "1.48.0", features = ["rt", "macros", "rt-multi-thread"] }
