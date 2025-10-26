@@ -18,10 +18,10 @@ macos-private-api = []
 bitflags = "2.9.1"
 thiserror = "1.0.69"
 tokio = { version = "1.45.1", default-features = false, features = ["sync"] }
-window-getter = { git = "https://github.com/tasuren/window-getter-rs.git", branch = "main" }
+window-getter = "0.1.2"
 
 [target.'cfg(target_os = "windows")'.dependencies.windows]
-version = "0.61.3"
+version = "0.62.2"
 features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",

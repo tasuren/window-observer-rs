@@ -13,7 +13,7 @@ fn handle_events(
     while let Some(event) = rx.blocking_recv() {
         if let Some(hwnd) = event.window_handle() {
             let hwnd = Foundation::HWND(hwnd.as_ptr() as _);
-            let Some(window) = get_window(hwnd).map(|w| w.into_inner()) else {
+            let Some(window) = get_window(hwnd).map(|w| w.into_platform_window()) else {
                 // If hwnd is not valid window, continue;
                 continue;
             };
