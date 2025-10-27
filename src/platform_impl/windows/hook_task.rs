@@ -1,9 +1,9 @@
 use tokio::sync::mpsc::UnboundedReceiver;
 use window_getter::platform_impl::get_window;
 use windows::Win32::Foundation;
-use wineventhook::{raw_event, WindowEventHook};
+use wineventhook::{WindowEventHook, raw_event};
 
-use super::{event_interpreter::EventInterpreter, PlatformError};
+use super::{error::WindowsError, event_interpreter::EventInterpreter};
 use crate::{EventFilter, EventTx};
 
 fn handle_events(
@@ -27,7 +27,7 @@ pub async fn make_wineventhook_task(
     pid: u32,
     event_tx: EventTx,
     event_filter: EventFilter,
-) -> Result<WindowEventHook, PlatformError> {
+) -> Result<WindowEventHook, WindowsError> {
     let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
     let hook = WindowEventHook::hook(
         wineventhook::EventFilter::default()

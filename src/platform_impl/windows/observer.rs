@@ -30,7 +30,7 @@ impl WindowsWindowObserver {
         self.hook
             .unhook()
             .await
-            .map_err(super::PlatformError::from)?;
+            .map_err(super::error::WindowsError::from)?;
 
         Ok(())
     }
