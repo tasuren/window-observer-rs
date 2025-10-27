@@ -3,8 +3,8 @@
 use std::{ptr::NonNull, sync::Mutex};
 
 use accessibility::AXUIElement;
-use accessibility_sys::{pid_t, AXError, AXObserverRef};
-use core_foundation::base::{FromVoid, TCFType};
+use accessibility_sys::{AXError, AXObserverRef, pid_t};
+use core_foundation::base::TCFType;
 use objc2_core_foundation::{CFRetained, CFRunLoopSource, CFString};
 
 use super::error::AXErrorIntoResult;
@@ -25,9 +25,12 @@ extern "C" fn observer_callback(
     notification: core_foundation::string::CFStringRef,
     refcon: *mut std::ffi::c_void,
 ) {
-    let notification = unsafe { &*(notification as *const CFString) };
+    let notification = unsafe {
+        let ptr = NonNull::new_unchecked(notification as *mut CFString);
+        CFRetained::retain(ptr)
+    };
     let refcon = unsafe { &*(refcon as *mut Mutex<RefCon>) };
-    let element = unsafe { AXUIElement::from_void(element as _) }.clone();
+    let element = unsafe { AXUIElement::wrap_under_get_rule(element as _) };
 
     if let Ok(mut refcon) = refcon.lock() {
         (refcon.callback)(element, notification.to_string());

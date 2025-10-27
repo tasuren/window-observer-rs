@@ -69,7 +69,7 @@ impl Window {
     /// Checks if the window is currently focused.
     ///
     /// # Platform-specific
-    /// - **windows:** It will always return [`Ok`].
+    /// - **Windows:** It will always return [`Ok`].
     pub fn is_focused(&self) -> Result<bool, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -86,7 +86,7 @@ impl Window {
     /// # Platform-specific
     /// - **macOS:** It will return a [`CGWindowID`][CGWindowID] which is wrapped by [`window_getter::WindowId`].
     ///   **Warning:** It uses the private API `_AXUIElementGetWindow` of macOS.
-    /// - **windows:** It will always return [`Ok`].
+    /// - **Windows:** It will always return [`Ok`].
     ///
     /// [CGWindowID]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     #[cfg(feature = "macos-private-api")]
@@ -109,7 +109,7 @@ impl Window {
     /// [window-getter-rs]: https://github.com/tasuren/window-getter-rs
     ///
     /// # Platform-specific
-    /// - **windows:** It will always return `Ok(Some(Window))`.
+    /// - **Windows:** It will always return `Ok(Some(Window))`.
     #[cfg(feature = "macos-private-api")]
     pub fn create_window_getter_window(&self) -> Result<Option<window_getter::Window>, Error> {
         #[cfg(target_os = "macos")]

@@ -3,7 +3,7 @@ use objc2_core_foundation::{CGPoint, CGSize};
 
 use super::{
     binding_ax_function::{ax_ui_element_copy_attribute_value, ax_value_get_value},
-    PlatformError,
+    error::MacOSError,
 };
 use crate::window::{Position, Size};
 
@@ -55,19 +55,19 @@ impl WindowUIElement {
         &self,
         attribute: &str,
         r#type: accessibility_sys::AXValueType,
-    ) -> Result<T, PlatformError> {
+    ) -> Result<T, MacOSError> {
         let ax_value =
-            ax_ui_element_copy_attribute_value(&self.0, attribute).map_err(PlatformError::Ax)?;
+            ax_ui_element_copy_attribute_value(&self.0, attribute).map_err(MacOSError::Ax)?;
         Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
     }
 
     /// Retrieves the title of the window.
-    pub fn title(&self) -> Result<String, PlatformError> {
+    pub fn title(&self) -> Result<String, MacOSError> {
         Ok(self.0.title()?.to_string())
     }
 
     /// Retrieves the size of the window.
-    pub fn size(&self) -> Result<Size, PlatformError> {
+    pub fn size(&self) -> Result<Size, MacOSError> {
         self.get::<CGSize>(
             accessibility_sys::kAXSizeAttribute,
             accessibility_sys::kAXValueTypeCGSize,
@@ -76,7 +76,7 @@ impl WindowUIElement {
     }
 
     /// Retrieves the position of the window.
-    pub fn position(&self) -> Result<Position, PlatformError> {
+    pub fn position(&self) -> Result<Position, MacOSError> {
         self.get::<CGPoint>(
             accessibility_sys::kAXPositionAttribute,
             accessibility_sys::kAXValueTypeCGPoint,
@@ -85,7 +85,7 @@ impl WindowUIElement {
     }
 
     /// Checks if the window is currently active.
-    pub fn is_focused(&self) -> Result<bool, PlatformError> {
+    pub fn is_focused(&self) -> Result<bool, MacOSError> {
         Ok(self.0.focused()?.into())
     }
 
@@ -98,7 +98,7 @@ impl WindowUIElement {
     /// [window_id]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
     #[cfg(feature = "macos-private-api")]
-    pub fn id(&self) -> Result<u32, PlatformError> {
+    pub fn id(&self) -> Result<u32, MacOSError> {
         super::binding_ax_function::ax_ui_element_get_window_id(&self.0)
     }
 }

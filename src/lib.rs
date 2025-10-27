@@ -17,7 +17,7 @@ pub enum Error {
     /// The process ID is invalid for observing windows.
     ///
     /// # Platform-specific
-    /// - **windows:** This occurs when the process ID is zero.
+    /// - **Windows:** This occurs when the process ID is zero.
     /// - **macOS:** This does not occur on macOS.
     #[error("The process ID is invalid: {0}")]
     InvalidProcessId(u32),
@@ -25,13 +25,13 @@ pub enum Error {
     /// This also occurs when the application that has given PID is not found.
     ///
     /// # Platform-specific
-    /// - **windows:** This does not occur on windows.
+    /// - **Windows:** This does not occur on windows.
     #[error("Something went wrong")]
     SomethingWentWrong,
     /// The application does not support observing window events.
     ///
     /// # Platform-specific
-    /// - **windows:** This does not occur on windows.
+    /// - **Windows:** This does not occur on windows.
     #[error("The application does not support observing window")]
     NotSupported,
     /// Permission denied error. This error only occurs on macOS.
@@ -121,7 +121,7 @@ pub enum Event {
     /// The window was focused.
     ///
     /// # Platform-specific
-    /// - **windows:** This event is same as [`Event::Foregrounded`].
+    /// - **Windows:** This event is same as [`Event::Foregrounded`].
     ///   So this event and `Foregrounded` event are always dispatched together.
     /// - **macOS:** On macOS, a window does not lose focus even when miniaturized.
     ///   Therefore, this event will not be dispatched when the window is deminiaturized.
@@ -129,7 +129,7 @@ pub enum Event {
     /// The window was unfocused.
     ///
     /// # Platform-specific
-    /// - **windows:** This event is same as [`Event::Backgrounded`].
+    /// - **Windows:** This event is same as [`Event::Backgrounded`].
     ///   So this event and `Backgrounded` event are always dispatched together.
     /// - **macOS:** On macOS, a window does not lose focus even when miniaturized.
     ///   Therefore, this event will not be dispatched when the window is miniaturized

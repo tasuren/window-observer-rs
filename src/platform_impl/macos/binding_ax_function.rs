@@ -4,7 +4,7 @@
 use accessibility::AXUIElement;
 use accessibility_sys::{AXError, AXValueGetValue, AXValueRef};
 use core_foundation::{
-    base::{CFTypeRef, ToVoid},
+    base::{CFTypeRef, TCFType},
     string::CFString,
 };
 
@@ -26,8 +26,8 @@ pub fn ax_ui_element_copy_attribute_value(
 
     unsafe {
         accessibility_sys::AXUIElementCopyAttributeValue(
-            element.to_void() as _,
-            CFString::new(attribute).to_void() as _,
+            element.as_concrete_TypeRef(),
+            CFString::new(attribute).as_concrete_TypeRef(),
             &mut value,
         )
     }
@@ -67,24 +67,39 @@ pub fn ax_is_process_trusted() -> bool {
     unsafe { accessibility_sys::AXIsProcessTrusted() }
 }
 
+/// Checks if the current process is trusted for accessibility features.
+///
+/// # Parameters
+/// - `prompt`: It indicates whether the user will be informed if the current process is untrusted.
+///     Prompting occurs asynchronously and does not affect the return value.
+pub fn ax_is_process_trusted_with_options(prompt: bool) -> bool {
+    unsafe {
+        let key = core_foundation::string::CFString::wrap_under_get_rule(
+            accessibility_sys::kAXTrustedCheckOptionPrompt,
+        );
+        let value = core_foundation::boolean::CFBoolean::from(prompt);
+        let options = core_foundation::dictionary::CFDictionary::from_CFType_pairs(&[(key, value)])
+            .as_concrete_TypeRef();
+
+        accessibility_sys::AXIsProcessTrustedWithOptions(options)
+    }
+}
+
 #[cfg(feature = "macos-private-api")]
-pub fn ax_ui_element_get_window_id(element: &AXUIElement) -> Result<u32, super::PlatformError> {
-    use std::mem::MaybeUninit;
-
+pub fn ax_ui_element_get_window_id(element: &AXUIElement) -> Result<u32, super::error::MacOSError> {
     use accessibility_sys::{AXError, AXUIElementRef};
-    use core_foundation::base::ToVoid;
 
-    use crate::platform_impl::macos::error::AXErrorIntoResult;
+    use super::error::AXErrorIntoResult;
 
-    extern "C" {
+    unsafe extern "C" {
         fn _AXUIElementGetWindow(element: AXUIElementRef, out: *mut u32) -> AXError;
     }
 
     unsafe {
-        let mut out = MaybeUninit::uninit();
+        let mut out = 0;
 
-        _AXUIElementGetWindow(element.to_void() as _, out.as_mut_ptr())
-            .into_result(out.assume_init())
-            .map_err(super::PlatformError::Ax)
+        _AXUIElementGetWindow(element.as_concrete_TypeRef(), &mut out)
+            .into_result(out)
+            .map_err(super::error::MacOSError::Ax)
     }
 }
