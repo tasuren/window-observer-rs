@@ -48,4 +48,4 @@ But I'd be happy to receive pull requests.
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/tasuren/window-getter-rs/blob/main/LICENSE).
+This project is licensed under the [MIT License](https://github.com/tasuren/window-observer-rs/blob/main/LICENSE).
