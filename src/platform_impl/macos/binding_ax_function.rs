@@ -53,10 +53,12 @@ pub unsafe fn ax_value_get_value<T>(
 ) -> Option<T> {
     let mut result = std::mem::MaybeUninit::<T>::uninit();
 
-    if AXValueGetValue(value, r#type, result.as_mut_ptr() as _) {
-        Some(result.assume_init())
-    } else {
-        None
+    unsafe {
+        if AXValueGetValue(value, r#type, result.as_mut_ptr() as _) {
+            Some(result.assume_init())
+        } else {
+            None
+        }
     }
 }
 
