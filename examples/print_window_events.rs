@@ -5,6 +5,11 @@ fn print_event(event: MaybeWindowAvailable) {
         MaybeWindowAvailable::Available { window, event } => {
             println!("\n{event:?}");
             println!("\tWindow title: {:?}", window.title());
+            #[cfg(feature = "macos-private-api")]
+            {
+                let window_getter = window.create_window_getter_window().ok().flatten().unwrap();
+                println!("\tWindow owner: {:?}", window_getter.owner_name());
+            }
 
             match event {
                 Event::Moved => {
