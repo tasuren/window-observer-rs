@@ -3,6 +3,9 @@
 This crate provides an observer that receives events such as window movement and resizing.
 It is designed to receive window events on Windows and macOS for cross-platform applications.
 
+[![Crates.io Version](https://img.shields.io/crates/v/window-observer)](https://crates.io/crates/window-observer)
+[![docs.rs](https://img.shields.io/docsrs/window-observer)](https://docs.rs/window-getter/latest/window_observer/)
+
 ## Example
 
 ```rust
@@ -30,42 +33,14 @@ async fn main() {
 }
 ```
 
-## ToDo
-
-First release todos:
+## Platform supports
 
 - [x] macOS
-    - [x] Resized
-    - [x] Moved
-    - [x] Foregrounded
-    - [x] Backgrounded
-    - [x] Hidden
-    - [x] Showed
-    - [x] Focused
-    - [x] Unfocused
-    - [x] Closed
 - [x] Windows
-    - [x] Resized
-    - [x] Moved
-    - [x] Foregrounded
-    - [x] Backgrounded
-    - [x] Hidden
-    - [x] Showed
-    - [x] Focused
-    - [x] Unfocused
-    - [x] Closed
 - [ ] Linux?
-      I have no plans to make this at this time due to my inexperienced knowledge about Linux.
-      But I'd be happy to receive pull requests.
-    - [ ] Resized
-    - [ ] Moved
-    - [ ] Foregrounded
-    - [ ] Backgrounded
-    - [ ] Hidden
-    - [ ] Showed
-    - [ ] Focused
-    - [ ] Unfocused
-    - [ ] Closed
+
+I have no plans to make this at this time due to my inexperienced knowledge about Linux.
+But I'd be happy to receive pull requests.
 
 ## Acknowledgements
 
@@ -73,4 +48,4 @@ First release todos:
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE).
+This project is licensed under the [MIT License](https://github.com/tasuren/window-getter-rs/blob/main/LICENSE).
