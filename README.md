@@ -4,7 +4,7 @@ This crate provides an observer that receives events such as window movement and
 It is designed to receive window events on Windows and macOS for cross-platform applications.
 
 [![Crates.io Version](https://img.shields.io/crates/v/window-observer)](https://crates.io/crates/window-observer)
-[![docs.rs](https://img.shields.io/docsrs/window-observer)](https://docs.rs/window-getter/latest/window_observer/)
+[![docs.rs](https://img.shields.io/docsrs/window-observer)](https://docs.rs/window-observer/latest/window_observer/)
 
 ## Example
 
@@ -48,4 +48,4 @@ But I'd be happy to receive pull requests.
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/tasuren/window-getter-rs/blob/main/LICENSE).
+This project is licensed under the [MIT License](https://github.com/tasuren/window-observer-rs/blob/main/LICENSE).
