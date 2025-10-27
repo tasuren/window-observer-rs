@@ -2,7 +2,7 @@
 name = "window-observer"
 description = "The library for observing information about the windows."
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 authors = ["Takagi Tasuku <tasuren@outlook.jp>"]
 license = "MIT"
 readme = "README.md"
