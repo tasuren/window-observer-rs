@@ -85,6 +85,7 @@ pub fn ax_is_process_trusted_with_options(prompt: bool) -> bool {
 }
 
 #[cfg(feature = "macos-private-api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "macos-private-api")))]
 pub fn ax_ui_element_get_window_id(element: &AXUIElement) -> Result<u32, super::error::MacOSError> {
     use accessibility_sys::{AXError, AXUIElementRef};
 

@@ -98,6 +98,7 @@ impl WindowUIElement {
     /// [window_id]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     /// [element]: https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc
     #[cfg(feature = "macos-private-api")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "macos-private-api")))]
     pub fn id(&self) -> Result<u32, MacOSError> {
         super::binding_ax_function::ax_ui_element_get_window_id(&self.0)
     }
