@@ -5,6 +5,8 @@ use accessibility::AXUIElement;
 use accessibility_sys::{AXError, AXValueGetValue, AXValueRef};
 use core_foundation::{
     base::{CFTypeRef, TCFType},
+    boolean::CFBoolean,
+    dictionary::CFDictionary,
     string::CFString,
 };
 
@@ -74,14 +76,11 @@ pub fn ax_is_process_trusted() -> bool {
 ///     Prompting occurs asynchronously and does not affect the return value.
 pub fn ax_is_process_trusted_with_options(prompt: bool) -> bool {
     unsafe {
-        let key = core_foundation::string::CFString::wrap_under_get_rule(
-            accessibility_sys::kAXTrustedCheckOptionPrompt,
-        );
-        let value = core_foundation::boolean::CFBoolean::from(prompt);
-        let options = core_foundation::dictionary::CFDictionary::from_CFType_pairs(&[(key, value)])
-            .as_concrete_TypeRef();
+        let key = CFString::wrap_under_get_rule(accessibility_sys::kAXTrustedCheckOptionPrompt);
+        let value = CFBoolean::from(prompt);
+        let options = CFDictionary::from_CFType_pairs(&[(key, value)]);
 
-        accessibility_sys::AXIsProcessTrustedWithOptions(options)
+        accessibility_sys::AXIsProcessTrustedWithOptions(options.as_concrete_TypeRef())
     }
 }
 
