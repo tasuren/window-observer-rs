@@ -1,5 +1,5 @@
 use crate::{
-    platform_impl::PlatformWindow, Event, EventFilter, EventTx, MaybeWindowAvailable, Window,
+    Event, EventFilter, EventTx, MaybeWindowAvailable, Window, platform_impl::PlatformWindow,
 };
 use accessibility::{AXUIElement, AXUIElementAttributes};
 

@@ -1,6 +1,6 @@
 use std::thread::{self, JoinHandle};
 
-use objc2_core_foundation::{kCFRunLoopDefaultMode, CFRetained, CFRunLoop, CFRunLoopSource};
+use objc2_core_foundation::{CFRetained, CFRunLoop, CFRunLoopSource, kCFRunLoopDefaultMode};
 use tokio::sync::OnceCell;
 
 use super::binding_ax_observer::AXObserver;

@@ -3,11 +3,11 @@ use accessibility::AXUIElement;
 use super::{
     binding_ax_function::ax_is_process_trusted,
     binding_ax_observer::AXObserver,
-    event_loop::{event_loop, get_event_loop, ObserverSource},
+    event_loop::{ObserverSource, event_loop, get_event_loop},
 };
 use crate::{
-    platform_impl::macos::event_interpreter::{for_each_notification_event, EventInterpreter},
     Error, EventFilter, EventTx,
+    platform_impl::macos::event_interpreter::{EventInterpreter, for_each_notification_event},
 };
 
 /// Observes macOS window events and provides an interface to manage them.
