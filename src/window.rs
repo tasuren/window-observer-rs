@@ -1,6 +1,6 @@
 use window_getter::Bounds;
 
-use crate::{platform_impl::PlatformWindow, Error};
+use crate::{Error, platform_impl::PlatformWindow};
 
 /// A wrapper around platform-specific window implementations.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -134,7 +134,7 @@ pub struct Size {
 }
 
 /// Represents the position of a window.
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Position {
     /// The x-coordinate of the window.
     pub x: f64,
