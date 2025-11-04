@@ -1,12 +1,13 @@
-use window_getter::{platform_impl::PlatformWindow, WindowId};
+use window_getter::{WindowId, platform_impl::PlatformWindow};
 use wineventhook::{
-    MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEvent, WindowEventType,
+    AccessibleObjectId, MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEvent,
+    WindowEventType,
 };
 
 use crate::{
+    Event, EventFilter, EventTx, MaybeWindowAvailable, Window,
     platform_impl::PlatformError,
     window::{Position, Size},
-    Event, EventFilter, EventTx, MaybeWindowAvailable, Window,
 };
 
 #[derive(Debug, Default, Clone)]
@@ -96,10 +97,12 @@ impl EventInterpreter {
                 let current_pos: Position = visible_bounds.clone().into();
                 let previous_pos = self.state.previous_pos.replace(current_pos.clone());
 
-                if previous_pos.is_none()
-                    || previous_pos
-                        .as_ref()
-                        .is_some_and(|previous_pos| *previous_pos != current_pos)
+                if is_hidden_pos(current_pos) {
+                    self.dispatch(Some(window), Event::Hidden);
+                } else if previous_pos.is_some_and(is_hidden_pos) {
+                    self.dispatch(Some(window), Event::Showed);
+                } else if previous_pos.is_none()
+                    || previous_pos.is_some_and(|previous_pos| previous_pos != current_pos)
                 {
                     self.dispatch(Some(window), Event::Moved);
                 }
@@ -149,8 +152,13 @@ impl EventInterpreter {
             WindowEventType::System(MaybeKnown::Known(event)) => {
                 self.on_system_event(window, event)?;
             }
-            WindowEventType::Object(MaybeKnown::Known(event)) => {
-                self.on_object_event(window, event)?;
+            WindowEventType::Object(MaybeKnown::Known(inner_event)) => {
+                if matches!(
+                    event.object_type(),
+                    MaybeKnown::Known(AccessibleObjectId::Window)
+                ) {
+                    self.on_object_event(window, inner_event)?;
+                };
             }
             _ => {}
         }
@@ -163,4 +171,13 @@ impl EventInterpreter {
             let _ = self.event_tx.send(Err(e));
         };
     }
+}
+
+/// Determine whether the specified location is the location of a hidden window on task-bar.
+#[inline]
+fn is_hidden_pos(pos: Position) -> bool {
+    // TODO: This workaround is for hidden event via task-bar, and I don't want to use it.
+    // But I don't know how to recieve hidden event when the user hide windows on task-bar.
+    // Only events about movement are recieved via windows hidden on task-bar.
+    pos.x == -32000. && pos.y == -32000.
 }
