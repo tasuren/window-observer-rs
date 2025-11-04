@@ -90,6 +90,7 @@ impl Window {
     ///
     /// [CGWindowID]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
     #[cfg(feature = "macos-private-api")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "macos-private-api")))]
     pub fn id(&self) -> Result<window_getter::WindowId, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -111,6 +112,7 @@ impl Window {
     /// # Platform-specific
     /// - **Windows:** It will always return `Ok(Some(Window))`.
     #[cfg(feature = "macos-private-api")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "macos-private-api")))]
     pub fn create_window_getter_window(&self) -> Result<Option<window_getter::Window>, Error> {
         #[cfg(target_os = "macos")]
         {

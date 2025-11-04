@@ -1,7 +1,7 @@
 [package]
 name = "window-observer"
 description = "The library for observing information about the windows."
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Takagi Tasuku <tasuren@outlook.jp>"]
 license = "MIT"
@@ -51,6 +51,5 @@ features = ["CFString", "CFRunLoop"]
 tokio = { version = "1.48.0", features = ["rt", "macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]
-targets = ["x86_64-pc-windows-msvc", "aarch64-apple-darwin"]
 all-features = true
-rustdoc-args = ["--cfg", "doc_cfg"]
+targets = ["x86_64-pc-windows-msvc", "aarch64-apple-darwin"]
