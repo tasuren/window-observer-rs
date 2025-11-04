@@ -138,6 +138,12 @@ pub enum Event {
     /// The window was hidden.
     Hidden,
     /// The window was showed.
+    /// 
+    /// # Platform-specific
+    /// - **Windows:** This event may not occur until after the observer has started
+    ///   and the first Hidden event has been triggered.
+    ///   Example: When monitoring begins while the window is minimized to the taskbar,
+    ///   and then the window is opened from the taskbar.
     Showed,
     /// The window was closed.
     Closed { window_id: window_getter::WindowId },
