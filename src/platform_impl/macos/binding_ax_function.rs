@@ -75,7 +75,7 @@ pub fn ax_is_process_trusted() -> bool {
 ///
 /// # Parameters
 /// - `prompt`: It indicates whether the user will be informed if the current process is untrusted.
-///     Prompting occurs asynchronously and does not affect the return value.
+///   Prompting occurs asynchronously and does not affect the return value.
 pub fn ax_is_process_trusted_with_options(prompt: bool) -> bool {
     unsafe {
         let key = CFString::wrap_under_get_rule(accessibility_sys::kAXTrustedCheckOptionPrompt);

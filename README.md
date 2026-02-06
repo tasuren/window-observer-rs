@@ -37,9 +37,9 @@ async fn main() {
 
 - [x] macOS*
 - [x] Windows
-- [ ] Linux?  
-      I have no plans to make this at this time due to my inexperienced knowledge about Linux.
-But I'd be happy to receive pull requests.
+- [ ] Linux?
+  I have no plans to make this at this time due to my inexperienced knowledge about Linux.
+  But I'd be happy to receive pull requests.
 
 \* Note that window operations on macOS use the Accessibility API, so accessibility permissions are required.
 

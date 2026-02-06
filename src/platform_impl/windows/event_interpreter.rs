@@ -53,13 +53,12 @@ impl EventInterpreter {
     fn on_system_foreground_event(&mut self, window: PlatformWindow) -> Result<(), PlatformError> {
         let before_foreground = self.state.foreground.replace(window);
 
-        if let Some(before_foreground) = before_foreground {
-            if before_foreground.hwnd() != window.hwnd()
-                && before_foreground.owner_pid()? == self.pid
-            {
-                self.dispatch(Some(before_foreground), Event::Backgrounded);
-                self.dispatch(Some(before_foreground), Event::Unfocused);
-            }
+        if let Some(before_foreground) = before_foreground
+            && before_foreground.hwnd() != window.hwnd()
+            && before_foreground.owner_pid()? == self.pid
+        {
+            self.dispatch(Some(before_foreground), Event::Backgrounded);
+            self.dispatch(Some(before_foreground), Event::Unfocused);
         }
 
         Ok(())
@@ -95,7 +94,7 @@ impl EventInterpreter {
                 // Check if the position has changed.
                 // `LocationChange` can be triggered by both position and size changes.
                 let current_pos: Position = visible_bounds.clone().into();
-                let previous_pos = self.state.previous_pos.replace(current_pos.clone());
+                let previous_pos = self.state.previous_pos.replace(current_pos);
 
                 if is_hidden_pos(current_pos) {
                     self.dispatch(Some(window), Event::Hidden);
@@ -168,7 +167,7 @@ impl EventInterpreter {
 
     pub fn interpret_wineventhook_event(&mut self, window: PlatformWindow, event: WindowEvent) {
         if let Err(e) = self.dispatch_wineventhook_event(window, event) {
-            let _ = self.event_tx.send(Err(e));
+            self.event_tx.send(Err(e)).ok();
         };
     }
 }

@@ -138,7 +138,7 @@ pub enum Event {
     /// The window was hidden.
     Hidden,
     /// The window was showed.
-    /// 
+    ///
     /// # Platform-specific
     /// - **Windows:** This event may not occur until after the observer has started
     ///   and the first Hidden event has been triggered.
