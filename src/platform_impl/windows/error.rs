@@ -4,6 +4,9 @@ pub enum WindowsError {
     /// An IO error occurred.
     #[error("IO error: {0}")]
     IOError(#[from] std::io::Error),
+    /// The event handling worker has been stopped unexpectedly.
+    #[error("Event worker stopped unexpectedly: {0}")]
+    WorkerStopped(#[from] tokio::sync::oneshot::error::RecvError),
     /// An error occurred from underlying implementation of [`window_getter`].
     #[error("Window getter error: {0}")]
     WindowGetterError(#[from] window_getter::platform_impl::PlatformError),

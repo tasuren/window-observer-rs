@@ -1,4 +1,4 @@
-use tokio::sync::mpsc::UnboundedReceiver;
+use tokio::sync::{mpsc::UnboundedReceiver, oneshot};
 use window_getter::platform_impl::get_window;
 use windows::Win32::Foundation;
 use wineventhook::{WindowEventHook, raw_event};
@@ -27,8 +27,10 @@ pub async fn make_wineventhook_task(
     pid: u32,
     event_tx: EventTx,
     event_filter: EventFilter,
-) -> Result<WindowEventHook, WindowsError> {
+) -> Result<(WindowEventHook, oneshot::Receiver<()>), WindowsError> {
     let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+    let (done_tx, done_rx) = oneshot::channel();
+
     let hook = WindowEventHook::hook(
         wineventhook::EventFilter::default()
             .events(raw_event::SYSTEM_START..raw_event::OBJECT_LOCATIONCHANGE),
@@ -40,7 +42,9 @@ pub async fn make_wineventhook_task(
         let event_interpreter = EventInterpreter::new(pid, event_tx, event_filter);
 
         handle_events(rx, event_interpreter);
+
+        done_tx.send(()).ok();
     });
 
-    Ok(hook)
+    Ok((hook, done_rx))
 }

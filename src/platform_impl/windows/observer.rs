@@ -1,3 +1,4 @@
+use tokio::sync::oneshot;
 use wineventhook::WindowEventHook;
 
 use crate::{Error, EventTx};
@@ -7,6 +8,7 @@ use super::hook_task::make_wineventhook_task;
 /// Observes window events on the Windows platform by using [wineventhook].
 pub struct WindowsWindowObserver {
     hook: WindowEventHook,
+    done_rx: oneshot::Receiver<()>,
 }
 
 impl WindowsWindowObserver {
@@ -20,15 +22,19 @@ impl WindowsWindowObserver {
             return Err(Error::InvalidProcessId(pid));
         }
 
-        let hook = make_wineventhook_task(pid, event_tx, event_filter).await?;
+        let (hook, done_rx) = make_wineventhook_task(pid, event_tx, event_filter).await?;
 
-        Ok(Self { hook })
+        Ok(Self { hook, done_rx })
     }
 
     /// Stops observing window events.
     pub async fn stop(self) -> Result<(), Error> {
         self.hook
             .unhook()
+            .await
+            .map_err(super::error::WindowsError::from)?;
+
+        self.done_rx
             .await
             .map_err(super::error::WindowsError::from)?;
 
