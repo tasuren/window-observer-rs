@@ -4,7 +4,7 @@
 use accessibility::AXUIElement;
 use accessibility_sys::{AXError, AXValueGetValue, AXValueRef};
 use core_foundation::{
-    base::{CFTypeRef, TCFType},
+    base::{CFType, CFTypeRef, TCFType},
     boolean::CFBoolean,
     dictionary::CFDictionary,
     string::CFString,
@@ -23,7 +23,7 @@ use super::error::AXErrorIntoResult;
 pub fn ax_ui_element_copy_attribute_value(
     element: &AXUIElement,
     attribute: &str,
-) -> Result<CFTypeRef, AXError> {
+) -> Result<CFType, AXError> {
     let mut value: CFTypeRef = std::ptr::null();
 
     unsafe {
@@ -33,7 +33,9 @@ pub fn ax_ui_element_copy_attribute_value(
             &mut value,
         )
     }
-    .into_result(value)
+    .into_result(())?;
+
+    Ok(unsafe { CFType::wrap_under_create_rule(value) })
 }
 
 /// Utility function for [`AXValueGetValue`].

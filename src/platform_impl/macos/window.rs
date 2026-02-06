@@ -1,4 +1,5 @@
 use accessibility::{AXUIElement, AXUIElementAttributes};
+use core_foundation::base::TCFType;
 use objc2_core_foundation::{CGPoint, CGSize};
 
 use super::{
@@ -58,7 +59,10 @@ impl WindowUIElement {
     ) -> Result<T, MacOSError> {
         let ax_value =
             ax_ui_element_copy_attribute_value(&self.0, attribute).map_err(MacOSError::Ax)?;
-        Ok(unsafe { ax_value_get_value::<T>(ax_value as _, r#type).unwrap() })
+        Ok(unsafe {
+            ax_value_get_value::<T>(ax_value.as_CFTypeRef() as _, r#type)
+                .expect("AXValue is not this type")
+        })
     }
 
     /// Retrieves the title of the window.
