@@ -76,9 +76,9 @@ impl AXObserver {
             accessibility_sys::AXObserverAddNotification(
                 self.raw,
                 element.as_concrete_TypeRef(),
-                CFString::from_str(notification)
-                    .downcast_ref::<CFString>()
-                    .unwrap() as *const CFString as _,
+                CFRetained::as_ptr(&CFString::from_str(notification))
+                    .cast()
+                    .as_ptr(),
                 self.refcon.as_ref() as *const Mutex<RefCon> as _,
             )
         }
@@ -95,9 +95,9 @@ impl AXObserver {
             accessibility_sys::AXObserverRemoveNotification(
                 self.raw,
                 element.as_concrete_TypeRef(),
-                CFString::from_str(notification)
-                    .downcast_ref::<CFString>()
-                    .unwrap() as *const CFString as _,
+                CFRetained::as_ptr(&CFString::from_str(notification))
+                    .cast()
+                    .as_ptr(),
             )
         }
         .into_result(())
