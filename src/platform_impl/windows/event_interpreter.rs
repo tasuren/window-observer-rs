@@ -1,6 +1,6 @@
 use window_getter::{WindowId, platform_impl::PlatformWindow};
 use wineventhook::{
-    AccessibleObjectId, MaybeKnown, ObjectWindowEvent, SystemWindowEvent, WindowEvent,
+    AccessibleObjectId, ObjectWindowEvent, SystemWindowEvent, WindowEvent,
     WindowEventType,
 };
 
@@ -138,7 +138,7 @@ impl EventInterpreter {
     ) -> Result<(), PlatformError> {
         if matches!(
             event.event_type(),
-            WindowEventType::System(MaybeKnown::Known(SystemWindowEvent::Foreground))
+            WindowEventType::System(SystemWindowEvent::Foreground)
         ) {
             self.on_system_foreground_event(window)?;
         }
@@ -148,13 +148,13 @@ impl EventInterpreter {
         }
 
         match event.event_type() {
-            WindowEventType::System(MaybeKnown::Known(event)) => {
+            WindowEventType::System(event) => {
                 self.on_system_event(window, event)?;
             }
-            WindowEventType::Object(MaybeKnown::Known(inner_event)) => {
+            WindowEventType::Object(inner_event) => {
                 if matches!(
                     event.object_type(),
-                    MaybeKnown::Known(AccessibleObjectId::Window)
+                    AccessibleObjectId::Window
                 ) {
                     self.on_object_event(window, inner_event)?;
                 };

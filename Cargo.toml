@@ -29,7 +29,7 @@ features = [
 ]
 
 [target.'cfg(target_os = "windows")'.dependencies]
-wineventhook = "0.9.1"
+wineventhook = "0.10"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 accessibility = "0.2.0"
